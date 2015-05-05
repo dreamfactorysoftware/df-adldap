@@ -30,6 +30,7 @@
   },
   "require": {
     "dreamfactory/rave": "dev-develop as dev-master",
+    "dreamfactory/rave-user-mgmt": "dev-develop as dev-master",
     "adldap/adldap": "4.0.*"
   },
   "autoload":{
