@@ -20,14 +20,23 @@
 
 namespace DreamFactory\DSP\ADLdap\Services;
 
+use DreamFactory\DSP\ADLdap\Components\LdapUser;
+use DreamFactory\DSP\ADLdap\Components\OpenLdapDriver;
+use DreamFactory\Rave\Exceptions\UnauthorizedException;
+use DreamFactory\Rave\Models\User;
 use DreamFactory\Rave\Services\BaseRestService;
 use DreamFactory\Library\Utility\ArrayUtils;
 use DreamFactory\Library\Utility\Enums\Verbs;
+use DreamFactory\Rave\User\Resources\Session;
 
 class LDAP extends BaseRestService
 {
+    const PROVIDER_NAME = 'ldap';
+
+    /** @var mixed  */
     protected $defaultRole;
 
+    /** @var mixed */
     protected $config;
 
     /**
@@ -46,31 +55,83 @@ class LDAP extends BaseRestService
         $this->defaultRole = ArrayUtils::get($this->config, 'default_role');
     }
 
+    /**
+     * @return array|null
+     */
+    public function getDefaultRole()
+    {
+        return $this->defaultRole;
+    }
+
+    /**
+     * @return string
+     */
+    public function getProviderName()
+    {
+        return static::PROVIDER_NAME;
+    }
+
+    /**
+     * @return string
+     */
+    public function getName()
+    {
+        return $this->name;
+    }
+
+    /**
+     * @return string|null
+     */
+    public function getHost()
+    {
+        return ArrayUtils::get($this->config, 'host');
+    }
+
+    /**
+     * @return string|null
+     */
+    public function getBaseDn()
+    {
+        return ArrayUtils::get($this->config, 'base_dn');
+    }
+
+    /**
+     * Handles the POST request on this service.
+     *
+     * @return array|bool
+     * @throws UnauthorizedException
+     * @throws \DreamFactory\Rave\Exceptions\BadRequestException
+     * @throws \DreamFactory\Rave\Exceptions\NotFoundException
+     */
     protected function handlePOST()
     {
         if('session' === $this->resource)
         {
             $username = $this->getPayloadData('username');
             $password = $this->getPayloadData('password');
-            $baseDn = ArrayUtils::get($this->config, 'base_dn');
-            $fullDn = 'cn='.$username.','.$baseDn;
 
-            $r = ldap_connect(ArrayUtils::get($this->config, 'host'));
-            ldap_set_option($r, LDAP_OPT_PROTOCOL_VERSION, 3);
+            $host = $this->getHost();
+            $baseDn = $this->getBaseDn();
 
-            $auth = ldap_bind($r, $fullDn, $password);
+            $ldap = new OpenLdapDriver($host, $baseDn);
+            $auth = $ldap->authenticate($username, $password);
 
             if($auth)
             {
-                // - Get user info
-                // - Create shadow user
-                // - Login with shadow user
-                // - return session info
+                $ldapUser = new LdapUser($ldap);
+
+                $user = User::createShadowLdapUser($ldapUser, $this);
+
+                \Auth::login($user);
+
+                return Session::getSessionData();
             }
             else
             {
-                // - Return exception
+                throw new UnauthorizedException('Invalid username and password provided.');
             }
         }
+
+        return false;
     }
 }
