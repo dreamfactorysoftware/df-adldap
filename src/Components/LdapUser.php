@@ -20,33 +20,33 @@
 
 namespace DreamFactory\DSP\ADLdap\Components;
 
-
 use DreamFactory\DSP\ADLdap\Contracts\User as LdapUserContract;
 use DreamFactory\Library\Utility\ArrayUtils;
 use DreamFactory\Rave\Exceptions\NotFoundException;
 use DreamFactory\Rave\Exceptions\UnauthorizedException;
+use DreamFactory\DSP\ADLdap\Contracts\Provider as ADLdapProvider;
 
 class LdapUser implements LdapUserContract
 {
-    /** @var OpenLdapDriver  */
+    /** @var ADLdapProvider */
     protected $driver;
 
-    /** @var array  */
-    protected $data = [];
+    /** @var array */
+    protected $data = [ ];
 
     /**
-     * @param OpenLdapDriver $driver
+     * @param ADLdapProvider $driver
      *
      * @throws UnauthorizedException
      */
-    public function __construct(OpenLdapDriver $driver)
+    public function __construct( ADLdapProvider $driver )
     {
-        if(!$driver->isAuthenticated())
+        if ( !$driver->isAuthenticated() )
         {
-            throw new UnauthorizedException('User is not authenticated.');
+            throw new UnauthorizedException( 'User is not authenticated.' );
         }
         $this->driver = $driver;
-        $this->data = $driver->readAll();
+        $this->data = $driver->getUserInfo();
     }
 
     /**
@@ -56,7 +56,7 @@ class LdapUser implements LdapUserContract
     {
         $baseDn = $this->driver->getBaseDn();
 
-        return $this->driver->getDomainName($baseDn);
+        return $this->driver->getDomainName( $baseDn );
     }
 
     /**
@@ -64,13 +64,13 @@ class LdapUser implements LdapUserContract
      */
     public function getData()
     {
-        if(ArrayUtils::get($this->data, 'count')>0)
+        if ( ArrayUtils::get( $this->data, 'count' ) > 0 )
         {
-            return ArrayUtils::get($this->data, 0);
+            return ArrayUtils::get( $this->data, 0 );
         }
         else
         {
-            throw new NotFoundException('No data found for Ldap User,');
+            throw new NotFoundException( 'No data found for Ldap User,' );
         }
     }
 
@@ -81,7 +81,7 @@ class LdapUser implements LdapUserContract
     {
         $data = $this->getData();
 
-        return ArrayUtils::getDeep($data, 'uidnumber', 0);
+        return ArrayUtils::getDeep( $data, 'uidnumber', 0 );
     }
 
     /**
@@ -91,7 +91,7 @@ class LdapUser implements LdapUserContract
     {
         $data = $this->getData();
 
-        return ArrayUtils::getDeep($data, 'uid', 0);
+        return ArrayUtils::getDeep( $data, 'uid', 0 );
     }
 
     /**
@@ -101,7 +101,7 @@ class LdapUser implements LdapUserContract
     {
         $data = $this->getData();
 
-        return ArrayUtils::getDeep($data, 'cn', 0);
+        return ArrayUtils::getDeep( $data, 'cn', 0 );
     }
 
     /**
@@ -111,7 +111,7 @@ class LdapUser implements LdapUserContract
     {
         $data = $this->getData();
 
-        return ArrayUtils::getDeep($data, 'givenname', 0);
+        return ArrayUtils::getDeep( $data, 'givenname', 0 );
     }
 
     /**
@@ -121,7 +121,7 @@ class LdapUser implements LdapUserContract
     {
         $data = $this->getData();
 
-        return ArrayUtils::getDeep($data, 'sn', 0);
+        return ArrayUtils::getDeep( $data, 'sn', 0 );
     }
 
     /**
@@ -131,7 +131,7 @@ class LdapUser implements LdapUserContract
     {
         $data = $this->getData();
 
-        return ArrayUtils::getDeep($data, 'mail', 0);
+        return ArrayUtils::getDeep( $data, 'mail', 0 );
     }
 
     /**
@@ -141,10 +141,34 @@ class LdapUser implements LdapUserContract
     {
         $data = $this->getData();
 
-        $password = ArrayUtils::getDeep($data, 'userpassword', 0);
-
-        $password = substr($password, strpos($password, '}')+1);
+        $password = ArrayUtils::getDeep( $data, 'userpassword', 0 );
+        $password .= $this->getDn();
+        $password .= time();
+        $password = bcrypt( $password );
 
         return $password;
+    }
+
+    /**
+     * Magic method to fetch any user value.
+     *
+     * @param string $method
+     * @param array  $args
+     *
+     * @return mixed
+     * @throws NotFoundException
+     */
+    public function __call( $method, $args )
+    {
+        $key = strtolower( substr( $method, 3 ) );
+
+        $data = $this->getData();
+
+        if ( in_array( $key, [ 'dn', 'count' ] ) )
+        {
+            return ArrayUtils::get( $data, $key );
+        }
+
+        return ArrayUtils::getDeep( $data, $key, 0 );
     }
 }

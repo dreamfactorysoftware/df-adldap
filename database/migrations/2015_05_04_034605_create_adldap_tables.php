@@ -3,15 +3,16 @@
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Database\Migrations\Migration;
 
-class CreateAdldapTables extends Migration {
+class CreateAdldapTables extends Migration
+{
 
-	/**
-	 * Run the migrations.
-	 *
-	 * @return void
-	 */
-	public function up()
-	{
+    /**
+     * Run the migrations.
+     *
+     * @return void
+     */
+    public function up()
+    {
         if ( !Schema::hasColumn( 'user', 'adldap' ) )
         {
             Schema::table(
@@ -29,21 +30,22 @@ class CreateAdldapTables extends Migration {
             {
                 $t->integer( 'service_id' )->unsigned()->primary();
                 $t->foreign( 'service_id' )->references( 'id' )->on( 'service' )->onDelete( 'cascade' );
-                $t->integer('default_role')->unsigned()->index();
-                $t->foreign('default_role')->references('id')->on('role')->onDelete('restrict');
+                $t->integer( 'default_role' )->unsigned()->index();
+                $t->foreign( 'default_role' )->references( 'id' )->on( 'role' )->onDelete( 'restrict' );
                 $t->string( 'host' );
                 $t->string( 'base_dn' );
+                $t->string( 'account_suffix' )->nullable();
             }
         );
-	}
+    }
 
-	/**
-	 * Reverse the migrations.
-	 *
-	 * @return void
-	 */
-	public function down()
-	{
+    /**
+     * Reverse the migrations.
+     *
+     * @return void
+     */
+    public function down()
+    {
         if ( Schema::hasColumn( 'user', 'adldap' ) )
         {
             Schema::table(
@@ -55,7 +57,7 @@ class CreateAdldapTables extends Migration {
             );
         }
 
-        Schema::dropIfExists('adldap_config');
-	}
+        Schema::dropIfExists( 'adldap_config' );
+    }
 
 }

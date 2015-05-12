@@ -21,23 +21,29 @@
 namespace DreamFactory\DSP\ADLdap\Services;
 
 use DreamFactory\DSP\ADLdap\Components\LdapUser;
-use DreamFactory\DSP\ADLdap\Components\OpenLdapDriver;
+use DreamFactory\DSP\ADLdap\Components\OpenLdap;
 use DreamFactory\Rave\Exceptions\UnauthorizedException;
 use DreamFactory\Rave\Models\User;
 use DreamFactory\Rave\Services\BaseRestService;
 use DreamFactory\Library\Utility\ArrayUtils;
 use DreamFactory\Library\Utility\Enums\Verbs;
 use DreamFactory\Rave\User\Resources\Session;
+use DreamFactory\DSP\ADLdap\Contracts\Provider as ADLdapProvider;
+use DreamFactory\Rave\Exceptions\NotFoundException;
 
 class LDAP extends BaseRestService
 {
+    /** Provider name */
     const PROVIDER_NAME = 'ldap';
 
-    /** @var mixed  */
+    /** @var mixed */
     protected $defaultRole;
 
     /** @var mixed */
     protected $config;
+
+    /** @var  ADLdapProvider */
+    protected $driver;
 
     /**
      * @param array $settings
@@ -52,7 +58,29 @@ class LDAP extends BaseRestService
         parent::__construct( $settings );
 
         $this->config = ArrayUtils::get( $settings, 'config' );
-        $this->defaultRole = ArrayUtils::get($this->config, 'default_role');
+        $this->defaultRole = ArrayUtils::get( $this->config, 'default_role' );
+        $this->setDriver();
+    }
+
+    /**
+     * Sets the Ldap driver.
+     */
+    protected function setDriver()
+    {
+        $host = $this->getHost();
+        $baseDn = $this->getBaseDn();
+
+        $this->driver = new OpenLdap( $host, $baseDn );
+    }
+
+    /**
+     * Returns the Ldap driver.
+     *
+     * @return ADLdapProvider
+     */
+    public function getDriver()
+    {
+        return $this->driver;
     }
 
     /**
@@ -84,7 +112,7 @@ class LDAP extends BaseRestService
      */
     public function getHost()
     {
-        return ArrayUtils::get($this->config, 'host');
+        return ArrayUtils::get( $this->config, 'host' );
     }
 
     /**
@@ -92,7 +120,18 @@ class LDAP extends BaseRestService
      */
     public function getBaseDn()
     {
-        return ArrayUtils::get($this->config, 'base_dn');
+        return ArrayUtils::get( $this->config, 'base_dn' );
+    }
+
+    /**
+     * Gets basic user session data.
+     *
+     * @return array
+     * @throws NotFoundException
+     */
+    protected function handleGET()
+    {
+        return Session::getSessionData();
     }
 
     /**
@@ -105,33 +144,41 @@ class LDAP extends BaseRestService
      */
     protected function handlePOST()
     {
-        if('session' === $this->resource)
+        if ( 'session' === $this->resource )
         {
-            $username = $this->getPayloadData('username');
-            $password = $this->getPayloadData('password');
+            $username = $this->getPayloadData( 'username' );
+            $password = $this->getPayloadData( 'password' );
 
-            $host = $this->getHost();
-            $baseDn = $this->getBaseDn();
+            $auth = $this->driver->authenticate( $username, $password );
 
-            $ldap = new OpenLdapDriver($host, $baseDn);
-            $auth = $ldap->authenticate($username, $password);
-
-            if($auth)
+            if ( $auth )
             {
-                $ldapUser = new LdapUser($ldap);
+                $ldapUser = $this->driver->getUser();
 
-                $user = User::createShadowLdapUser($ldapUser, $this);
+                $user = User::createShadowADLdapUser( $ldapUser, $this );
 
-                \Auth::login($user);
+                \Auth::login( $user );
 
                 return Session::getSessionData();
             }
             else
             {
-                throw new UnauthorizedException('Invalid username and password provided.');
+                throw new UnauthorizedException( 'Invalid username and password provided.' );
             }
         }
 
         return false;
+    }
+
+    /**
+     * Logs out user
+     *
+     * @return array
+     */
+    protected function handleDELETE()
+    {
+        \Auth::logout();
+
+        return [ 'success' => true ];
     }
 }

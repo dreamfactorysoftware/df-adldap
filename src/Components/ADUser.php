@@ -18,25 +18,27 @@
  * limitations under the License.
  */
 
-namespace DreamFactory\DSP\ADLdap\Services;
-
+namespace DreamFactory\DSP\ADLdap\Components;
 
 use DreamFactory\Library\Utility\ArrayUtils;
 
-class ADLdap extends LDAP
+class ADUser extends LdapUser
 {
-    /** Provider name */
-    const PROVIDER_NAME = 'adldap';
+    /**
+     * {@inheritdoc}
+     */
+    public function getUid()
+    {
+        $data = $this->getData();
+
+        return ArrayUtils::getDeep( $data, 'samaccountname', 0 );
+    }
 
     /**
-     * Sets the Active Directory Driver.
+     * {@inheritdoc}
      */
-    protected function setDriver()
+    public function getName()
     {
-        $host = $this->getHost();
-        $baseDn = $this->getBaseDn();
-        $accountSuffix = ArrayUtils::get($this->config, 'account_suffix');
-
-        $this->driver = new \DreamFactory\DSP\ADLdap\Components\ADLdap($host, $baseDn, $accountSuffix);
+        return ArrayUtils::getDeep( $this->getData(), 'name', 0 );
     }
 }

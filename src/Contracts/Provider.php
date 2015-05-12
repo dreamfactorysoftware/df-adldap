@@ -20,62 +20,71 @@
 
 namespace DreamFactory\DSP\ADLdap\Contracts;
 
-interface User
+use DreamFactory\DSP\ADLdap\Contracts\User as LdapUser;
+
+interface Provider
 {
     /**
-     * Gets LDAP domain name.
+     * Gets the base dn.
      *
      * @return string
      */
-    public function getDomain();
+    public function getBaseDn();
 
     /**
-     * Gets unique user ID.
+     * Gets full dn.
      *
-     * @return integer
-     */
-    public function getId();
-
-    /**
-     * Gets unique username.
+     * @param string $username
+     * @param string $uidField
      *
      * @return string
      */
-    public function getUid();
+    public function getDn( $username, $uidField = 'uid' );
 
     /**
-     * Gets cn (common name).
+     * Authenticates User.
+     *
+     * @param string $username
+     * @param string $password
+     *
+     * @return mixed
+     */
+    public function authenticate( $username, $password );
+
+    /**
+     * Checks to see if connection is bound/authenticated.
+     *
+     * @return bool
+     */
+    public function isAuthenticated();
+
+    /**
+     * Gets user info.
+     *
+     * @return array
+     */
+    public function getUserInfo();
+
+    /**
+     * Gets the user object.
+     *
+     * @return LdapUser
+     */
+    public function getUser();
+
+    /**
+     * Gets the connection resource.
+     *
+     * @return resource
+     */
+    public function getConnection();
+
+    /**
+     * Gets the domain name.
+     *
+     * @param string $baseDn
      *
      * @return string
      */
-    public function getName();
-
-    /**
-     * Gets givenname.
-     *
-     * @return string
-     */
-    public function getFirstName();
-
-    /**
-     * Gets sn (surname).
-     *
-     * @return string
-     */
-    public function getLastName();
-
-    /**
-     * Gets mail.
-     *
-     * @return string
-     */
-    public function getEmail();
-
-    /**
-     * Gets password hash.
-     *
-     * @return string
-     */
-    public function getPassword();
-
+    public static function getDomainName( $baseDn );
 }
