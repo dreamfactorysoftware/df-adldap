@@ -17,48 +17,32 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 namespace DreamFactory\DSP\ADLdap\Database\Seeds;
 
-use Illuminate\Database\Seeder;
-use DreamFactory\Rave\Models\ServiceType;
+use DreamFactory\Rave\Database\Seeds\BaseModelSeeder;
 
-class DatabaseSeeder extends Seeder
+class DatabaseSeeder extends BaseModelSeeder
 {
-    public function run()
-    {
-        if ( !ServiceType::whereName( 'adldap' )->exists() )
-        {
-            // Add the service type
-            ServiceType::create(
-                [
-                    'name'           => 'adldap',
-                    'class_name'     => "DreamFactory\\DSP\\ADLdap\\Services\\ADLdap",
-                    'config_handler' => "DreamFactory\\DSP\\ADLdap\\Models\\LDAPConfig",
-                    'label'          => 'adLdap integration',
-                    'description'    => 'A service for supporting adLdap integration',
-                    'group'          => 'ldap',
-                    'singleton'      => 1
-                ]
-            );
-            $this->command->info( 'adldap service type seeded!' );
-        }
+    protected $modelClass = 'DreamFactory\\Rave\\Models\\ServiceType';
 
-        if ( !ServiceType::whereName( 'ldap' )->exists() )
-        {
-            // Add the service type
-            ServiceType::create(
-                [
-                    'name'           => 'ldap',
-                    'class_name'     => "DreamFactory\\DSP\\ADLdap\\Services\\LDAP",
-                    'config_handler' => "DreamFactory\\DSP\\ADLdap\\Models\\LDAPConfig",
-                    'label'          => 'LDAP integration',
-                    'description'    => 'A service for supporting OpenLdap integration',
-                    'group'          => 'ldap',
-                    'singleton'      => 1
-                ]
-            );
-            $this->command->info( 'ldap service type seeded!' );
-        }
-    }
+    protected $records = [
+        [
+            'name'           => 'adldap',
+            'class_name'     => "DreamFactory\\DSP\\ADLdap\\Services\\ADLdap",
+            'config_handler' => "DreamFactory\\DSP\\ADLdap\\Models\\LDAPConfig",
+            'label'          => 'adLdap integration',
+            'description'    => 'A service for supporting adLdap integration',
+            'group'          => 'ldap',
+            'singleton'      => 1
+        ],
+        [
+            'name'           => 'ldap',
+            'class_name'     => "DreamFactory\\DSP\\ADLdap\\Services\\LDAP",
+            'config_handler' => "DreamFactory\\DSP\\ADLdap\\Models\\LDAPConfig",
+            'label'          => 'LDAP integration',
+            'description'    => 'A service for supporting OpenLdap integration',
+            'group'          => 'ldap',
+            'singleton'      => 1
+        ]
+    ];
 }
