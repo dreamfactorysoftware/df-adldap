@@ -20,16 +20,15 @@
 
 namespace DreamFactory\DSP\ADLdap\Services;
 
-use DreamFactory\DSP\ADLdap\Components\LdapUser;
 use DreamFactory\DSP\ADLdap\Components\OpenLdap;
 use DreamFactory\Rave\Exceptions\UnauthorizedException;
 use DreamFactory\Rave\Models\User;
 use DreamFactory\Rave\Services\BaseRestService;
 use DreamFactory\Library\Utility\ArrayUtils;
 use DreamFactory\Library\Utility\Enums\Verbs;
-use DreamFactory\Rave\User\Resources\Session;
 use DreamFactory\DSP\ADLdap\Contracts\Provider as ADLdapProvider;
 use DreamFactory\Rave\Exceptions\NotFoundException;
+use DreamFactory\Rave\Utility\Session as SessionUtil;
 
 class LDAP extends BaseRestService
 {
@@ -131,7 +130,7 @@ class LDAP extends BaseRestService
      */
     protected function handleGET()
     {
-        return Session::getSessionData();
+        return SessionUtil::getUserInfo();
     }
 
     /**
@@ -159,7 +158,7 @@ class LDAP extends BaseRestService
 
                 \Auth::login( $user );
 
-                return Session::getSessionData();
+                return SessionUtil::getUserInfo();
             }
             else
             {
