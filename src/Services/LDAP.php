@@ -28,7 +28,7 @@ use DreamFactory\Library\Utility\ArrayUtils;
 use DreamFactory\Library\Utility\Enums\Verbs;
 use DreamFactory\DSP\ADLdap\Contracts\Provider as ADLdapProvider;
 use DreamFactory\Rave\Exceptions\NotFoundException;
-use DreamFactory\Rave\Utility\Session as SessionUtil;
+use DreamFactory\Rave\Utility\Session;
 
 class LDAP extends BaseRestService
 {
@@ -130,7 +130,7 @@ class LDAP extends BaseRestService
      */
     protected function handleGET()
     {
-        return SessionUtil::getUserInfo();
+        return Session::getUserInfo();
     }
 
     /**
@@ -158,7 +158,7 @@ class LDAP extends BaseRestService
 
                 \Auth::login( $user );
 
-                return SessionUtil::getUserInfo();
+                return Session::getUserInfo();
             }
             else
             {
