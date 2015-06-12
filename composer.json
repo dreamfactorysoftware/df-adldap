@@ -30,7 +30,7 @@
   },
   "require": {
     "dreamfactory/df-core": "dev-develop as dev-master",
-    "dreamfactory/df-user-mgmt": "dev-develop as dev-master",
+    "dreamfactory/df-user": "dev-develop as dev-master",
     "adldap/adldap": "4.0.*"
   },
   "autoload":{
