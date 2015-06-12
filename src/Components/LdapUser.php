@@ -1,8 +1,8 @@
 <?php
 /**
- * This file is part of the DreamFactory Rave(tm)
+ * This file is part of the DreamFactory(tm)
  *
- * DreamFactory Rave(tm) <http://github.com/dreamfactorysoftware/rave>
+ * DreamFactory(tm) <http://github.com/dreamfactorysoftware/rave>
  * Copyright 2012-2014 DreamFactory Software, Inc. <support@dreamfactory.com>
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -18,13 +18,13 @@
  * limitations under the License.
  */
 
-namespace DreamFactory\DSP\ADLdap\Components;
+namespace DreamFactory\Core\ADLdap\Components;
 
-use DreamFactory\DSP\ADLdap\Contracts\User as LdapUserContract;
+use DreamFactory\Core\ADLdap\Contracts\User as LdapUserContract;
 use DreamFactory\Library\Utility\ArrayUtils;
-use DreamFactory\Rave\Exceptions\NotFoundException;
-use DreamFactory\Rave\Exceptions\UnauthorizedException;
-use DreamFactory\DSP\ADLdap\Contracts\Provider as ADLdapProvider;
+use DreamFactory\Core\Exceptions\NotFoundException;
+use DreamFactory\Core\Exceptions\UnauthorizedException;
+use DreamFactory\Core\ADLdap\Contracts\Provider as ADLdapProvider;
 
 class LdapUser implements LdapUserContract
 {

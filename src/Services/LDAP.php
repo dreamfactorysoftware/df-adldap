@@ -1,8 +1,8 @@
 <?php
 /**
- * This file is part of the DreamFactory Rave(tm)
+ * This file is part of the DreamFactory(tm)
  *
- * DreamFactory Rave(tm) <http://github.com/dreamfactorysoftware/rave>
+ * DreamFactory(tm) <http://github.com/dreamfactorysoftware/rave>
  * Copyright 2012-2014 DreamFactory Software, Inc. <support@dreamfactory.com>
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -18,17 +18,17 @@
  * limitations under the License.
  */
 
-namespace DreamFactory\DSP\ADLdap\Services;
+namespace DreamFactory\Core\ADLdap\Services;
 
-use DreamFactory\DSP\ADLdap\Components\OpenLdap;
-use DreamFactory\Rave\Exceptions\UnauthorizedException;
-use DreamFactory\Rave\Models\User;
-use DreamFactory\Rave\Services\BaseRestService;
+use DreamFactory\Core\ADLdap\Components\OpenLdap;
+use DreamFactory\Core\Exceptions\UnauthorizedException;
+use DreamFactory\Core\Models\User;
+use DreamFactory\Core\Services\BaseRestService;
 use DreamFactory\Library\Utility\ArrayUtils;
 use DreamFactory\Library\Utility\Enums\Verbs;
-use DreamFactory\DSP\ADLdap\Contracts\Provider as ADLdapProvider;
-use DreamFactory\Rave\Exceptions\NotFoundException;
-use DreamFactory\Rave\Utility\Session;
+use DreamFactory\Core\ADLdap\Contracts\Provider as ADLdapProvider;
+use DreamFactory\Core\Exceptions\NotFoundException;
+use DreamFactory\Core\Utility\Session;
 
 class LDAP extends BaseRestService
 {
@@ -130,7 +130,7 @@ class LDAP extends BaseRestService
      */
     protected function handleGET()
     {
-        return Session::getUserInfo();
+        return Session::getPublicInfo();
     }
 
     /**
@@ -138,8 +138,8 @@ class LDAP extends BaseRestService
      *
      * @return array|bool
      * @throws UnauthorizedException
-     * @throws \DreamFactory\Rave\Exceptions\BadRequestException
-     * @throws \DreamFactory\Rave\Exceptions\NotFoundException
+     * @throws \DreamFactory\Core\Exceptions\BadRequestException
+     * @throws \DreamFactory\Core\Exceptions\NotFoundException
      */
     protected function handlePOST()
     {
@@ -158,7 +158,7 @@ class LDAP extends BaseRestService
 
                 \Auth::login( $user );
 
-                return Session::getUserInfo();
+                return Session::getPublicInfo();
             }
             else
             {

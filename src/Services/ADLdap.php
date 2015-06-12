@@ -1,8 +1,8 @@
 <?php
 /**
- * This file is part of the DreamFactory Rave(tm)
+ * This file is part of the DreamFactory(tm)
  *
- * DreamFactory Rave(tm) <http://github.com/dreamfactorysoftware/rave>
+ * DreamFactory(tm) <http://github.com/dreamfactorysoftware/rave>
  * Copyright 2012-2014 DreamFactory Software, Inc. <support@dreamfactory.com>
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -18,7 +18,7 @@
  * limitations under the License.
  */
 
-namespace DreamFactory\DSP\ADLdap\Services;
+namespace DreamFactory\Core\ADLdap\Services;
 
 
 use DreamFactory\Library\Utility\ArrayUtils;
@@ -37,6 +37,6 @@ class ADLdap extends LDAP
         $baseDn = $this->getBaseDn();
         $accountSuffix = ArrayUtils::get($this->config, 'account_suffix');
 
-        $this->driver = new \DreamFactory\DSP\ADLdap\Components\ADLdap($host, $baseDn, $accountSuffix);
+        $this->driver = new \DreamFactory\Core\ADLdap\Components\ADLdap($host, $baseDn, $accountSuffix);
     }
 }

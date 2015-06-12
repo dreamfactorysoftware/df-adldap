@@ -1,2 +1,2 @@
-# dsp-adldap
-ad/Ldap support for DreamFactory DSP 2.0
+# df-adldap
+Active Directory & LDAP support for DreamFactory Platform 2.0
