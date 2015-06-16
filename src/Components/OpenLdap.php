@@ -1,23 +1,4 @@
 <?php
-/**
- * This file is part of the DreamFactory(tm)
- *
- * DreamFactory(tm) <http://github.com/dreamfactorysoftware/rave>
- * Copyright 2012-2014 DreamFactory Software, Inc. <support@dreamfactory.com>
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- * http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
-
 namespace DreamFactory\Core\ADLdap\Components;
 
 use DreamFactory\Core\ADLdap\Contracts\Provider;
@@ -36,7 +17,7 @@ class OpenLdap implements Provider
     protected $dn;
 
     /** @var array */
-    protected $userData = [ ];
+    protected $userData = [];
 
     /** @var bool */
     protected $authenticated = false;
@@ -45,11 +26,11 @@ class OpenLdap implements Provider
      * @param $host
      * @param $baseDn
      */
-    public function __construct( $host, $baseDn )
+    public function __construct($host, $baseDn)
     {
-        $connection = ldap_connect( $host );
-        ldap_set_option( $connection, LDAP_OPT_PROTOCOL_VERSION, 3 );
-        ldap_set_option( $connection, LDAP_OPT_REFERRALS, 0 );
+        $connection = ldap_connect($host);
+        ldap_set_option($connection, LDAP_OPT_PROTOCOL_VERSION, 3);
+        ldap_set_option($connection, LDAP_OPT_REFERRALS, 0);
 
         $this->connection = $connection;
         $this->baseDn = $baseDn;
@@ -72,21 +53,17 @@ class OpenLdap implements Provider
      * @return bool
      * @throws BadRequestException
      */
-    public function authenticate( $username, $password )
+    public function authenticate($username, $password)
     {
-        if ( empty( $username ) || empty( $password ) )
-        {
-            throw new BadRequestException( 'No username and/or password provided.' );
+        if (empty($username) || empty($password)) {
+            throw new BadRequestException('No username and/or password provided.');
         }
 
-        $this->dn = $this->getDn( $username );
+        $this->dn = $this->getDn($username);
 
-        try
-        {
-            $auth = ldap_bind( $this->connection, $this->dn, $password );
-        }
-        catch ( \Exception $e )
-        {
+        try {
+            $auth = ldap_bind($this->connection, $this->dn, $password);
+        } catch (\Exception $e) {
             $auth = false;
         }
 
@@ -112,18 +89,16 @@ class OpenLdap implements Provider
      */
     public function getUserInfo()
     {
-        if ( $this->authenticated )
-        {
-            if ( empty( $this->userData ) )
-            {
-                $rs = ldap_read( $this->connection, $this->dn, "(objectclass=*)" );
-                $this->userData = ldap_get_entries( $this->connection, $rs );
+        if ($this->authenticated) {
+            if (empty($this->userData)) {
+                $rs = ldap_read($this->connection, $this->dn, "(objectclass=*)");
+                $this->userData = ldap_get_entries($this->connection, $rs);
             }
 
             return $this->userData;
         }
 
-        return [ ];
+        return [];
     }
 
     /**
@@ -131,7 +106,7 @@ class OpenLdap implements Provider
      */
     public function getUser()
     {
-        return new LdapUser( $this );
+        return new LdapUser($this);
     }
 
     /**
@@ -151,14 +126,14 @@ class OpenLdap implements Provider
      *
      * @return string
      */
-    public static function getDomainName( $baseDn )
+    public static function getDomainName($baseDn)
     {
-        $baseDn = str_replace( 'DC=', 'dc=', $baseDn );
-        $baseDn = substr( $baseDn, strpos( $baseDn, 'dc=' ) );
-        list( $dc1, $dc2 ) = explode( ',', $baseDn );
+        $baseDn = str_replace('DC=', 'dc=', $baseDn);
+        $baseDn = substr($baseDn, strpos($baseDn, 'dc='));
+        list($dc1, $dc2) = explode(',', $baseDn);
 
-        $dc1 = substr( $dc1, strpos( $dc1, '=' ) + 1 );
-        $dc2 = substr( $dc2, strpos( $dc2, '=' ) + 1 );
+        $dc1 = substr($dc1, strpos($dc1, '=') + 1);
+        $dc2 = substr($dc2, strpos($dc2, '=') + 1);
 
         $domain = $dc1 . '.' . $dc2;
 
@@ -173,15 +148,15 @@ class OpenLdap implements Provider
      *
      * @return string
      */
-    public function getDn( $username, $uidField = 'uid' )
+    public function getDn($username, $uidField = 'uid')
     {
         $baseDn = $this->baseDn;
         $connection = $this->connection;
 
-        $search = ldap_search( $connection, $baseDn, '(' . $uidField . '=' . $username . ')' );
-        $result = ldap_get_entries( $connection, $search );
+        $search = ldap_search($connection, $baseDn, '(' . $uidField . '=' . $username . ')');
+        $result = ldap_get_entries($connection, $search);
 
-        $dn = ArrayUtils::getDeep( $result, 0, 'dn' );
+        $dn = ArrayUtils::getDeep($result, 0, 'dn');
 
         return $dn;
     }

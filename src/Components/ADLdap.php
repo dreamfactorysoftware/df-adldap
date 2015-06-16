@@ -1,23 +1,4 @@
 <?php
-/**
- * This file is part of the DreamFactory(tm)
- *
- * DreamFactory(tm) <http://github.com/dreamfactorysoftware/rave>
- * Copyright 2012-2014 DreamFactory Software, Inc. <support@dreamfactory.com>
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- * http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
-
 namespace DreamFactory\Core\ADLdap\Components;
 
 use DreamFactory\Core\Exceptions\BadRequestException;
@@ -32,21 +13,20 @@ class ADLdap extends OpenLdap
      * @param string      $baseDn
      * @param string|null $accountSuffix
      */
-    public function __construct( $host, $baseDn, $accountSuffix = null )
+    public function __construct($host, $baseDn, $accountSuffix = null)
     {
-        parent::__construct( $host, $baseDn );
-        $this->setAccountSuffix( $accountSuffix );
+        parent::__construct($host, $baseDn);
+        $this->setAccountSuffix($accountSuffix);
     }
 
     /**
      * @param string|null $suffix
      */
-    public function setAccountSuffix( $suffix = null )
+    public function setAccountSuffix($suffix = null)
     {
-        if ( empty( $suffix ) )
-        {
+        if (empty($suffix)) {
             $baseDn = $this->getBaseDn();
-            $suffix = static::getDomainName( $baseDn );
+            $suffix = static::getDomainName($baseDn);
         }
 
         $this->accountSuffix = $suffix;
@@ -63,32 +43,25 @@ class ADLdap extends OpenLdap
     /**
      * {@inheritdoc}
      */
-    public function authenticate( $username, $password )
+    public function authenticate($username, $password)
     {
-        if ( empty( $username ) || empty( $password ) )
-        {
-            throw new BadRequestException( 'No username and/or password provided.' );
+        if (empty($username) || empty($password)) {
+            throw new BadRequestException('No username and/or password provided.');
         }
 
         $accountSuffix = $this->getAccountSuffix();
 
-        try
-        {
-            $preAuth = ldap_bind( $this->connection, $username . '@' . $accountSuffix, $password );
+        try {
+            $preAuth = ldap_bind($this->connection, $username . '@' . $accountSuffix, $password);
 
-            if ( $preAuth )
-            {
-                $this->dn = $this->getDn( $username, 'samaccountname' );
+            if ($preAuth) {
+                $this->dn = $this->getDn($username, 'samaccountname');
 
-                $auth = ldap_bind( $this->connection, $this->dn, $password );
-            }
-            else
-            {
+                $auth = ldap_bind($this->connection, $this->dn, $password);
+            } else {
                 $auth = false;
             }
-        }
-        catch ( \Exception $e )
-        {
+        } catch (\Exception $e) {
             $auth = false;
         }
 
@@ -102,6 +75,6 @@ class ADLdap extends OpenLdap
      */
     public function getUser()
     {
-        return new ADUser( $this );
+        return new ADUser($this);
     }
 }

@@ -33,9 +33,9 @@
     "dreamfactory/df-user": "dev-develop as dev-master",
     "adldap/adldap": "4.0.*"
   },
-  "autoload":{
+  "autoload": {
     "psr-4": {
-      "DreamFactory\\Core\\ADLdap\\":"src/"
+      "DreamFactory\\Core\\ADLdap\\": "src/"
     }
   }
 }
