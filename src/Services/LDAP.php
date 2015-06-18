@@ -10,6 +10,8 @@ use DreamFactory\Library\Utility\Enums\Verbs;
 use DreamFactory\Core\ADLdap\Contracts\Provider as ADLdapProvider;
 use DreamFactory\Core\Exceptions\NotFoundException;
 use DreamFactory\Core\Utility\Session;
+use DreamFactory\Core\ADLdap\Contracts\User as LdapUserContract;
+
 
 class LDAP extends BaseRestService
 {
@@ -127,14 +129,11 @@ class LDAP extends BaseRestService
         if ('session' === $this->resource) {
             $username = $this->getPayloadData('username');
             $password = $this->getPayloadData('password');
-
             $auth = $this->driver->authenticate($username, $password);
 
             if ($auth) {
                 $ldapUser = $this->driver->getUser();
-
-                $user = User::createShadowADLdapUser($ldapUser, $this);
-
+                $user = $this->createShadowADLdapUser($ldapUser);
                 \Auth::login($user);
 
                 return Session::getPublicInfo();
@@ -156,5 +155,56 @@ class LDAP extends BaseRestService
         \Auth::logout();
 
         return ['success' => true];
+    }
+
+    /**
+     * If does not exists, creates a shadow LDap user using user info provided
+     * by the Ldap service provider and assigns default role to this user
+     * for all apps in the system. If user already exists then updates user's
+     * role for all apps and returns it.
+     *
+     * @param LdapUserContract $ldapUser
+     *
+     * @return User
+     * @throws \Exception
+     */
+    public function createShadowADLdapUser(LdapUserContract $ldapUser)
+    {
+        $email = $ldapUser->getEmail();
+        $serviceName = $this->getName();
+
+        if (empty($email)) {
+            $uid = $ldapUser->getUid();
+            if (empty($uid)) {
+                $uid = str_replace(' ', '', $ldapUser->getName());
+            }
+            $domain = $ldapUser->getDomain();
+            $email = $uid . '+' . $serviceName . '@' . $domain;
+        } else {
+            list($emailId, $domain) = explode('@', $email);
+            $email = $emailId . '+' . $serviceName . '@' . $domain;
+        }
+
+        $user = User::whereEmail($email)->first();
+
+        if (empty($user)) {
+            $data = [
+                'name'       => $ldapUser->getName(),
+                'first_name' => $ldapUser->getFirstName(),
+                'last_name'  => $ldapUser->getLastName(),
+                'email'      => $email,
+                'is_active'  => 1,
+                'adldap'     => $this->getProviderName(),
+                'password'   => $ldapUser->getPassword()
+            ];
+
+            $user = User::create($data);
+        }
+
+        $defaultRole = $this->getDefaultRole();
+
+        User::applyDefaultUserAppRole($user, $defaultRole);
+
+        return $user;
     }
 }
