@@ -134,8 +134,8 @@ class LDAP extends BaseRestService
             if ($auth) {
                 $ldapUser = $this->driver->getUser();
                 $user = $this->createShadowADLdapUser($ldapUser);
-                \Auth::login($user);
-
+                //\Auth::login($user);
+                Session::setUserInfoWithJWT($user);
                 return Session::getPublicInfo();
             } else {
                 throw new UnauthorizedException('Invalid username and password provided.');
