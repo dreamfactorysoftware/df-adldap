@@ -129,13 +129,13 @@ class LDAP extends BaseRestService
         if ('session' === $this->resource) {
             $username = $this->getPayloadData('username');
             $password = $this->getPayloadData('password');
+            $remember = boolval($this->getPayloadData('remember_me'));
             $auth = $this->driver->authenticate($username, $password);
 
             if ($auth) {
                 $ldapUser = $this->driver->getUser();
                 $user = $this->createShadowADLdapUser($ldapUser);
-                //\Auth::login($user);
-                Session::setUserInfoWithJWT($user);
+                Session::setUserInfoWithJWT($user, $remember);
                 return Session::getPublicInfo();
             } else {
                 throw new UnauthorizedException('Invalid username and password provided.');
@@ -152,7 +152,7 @@ class LDAP extends BaseRestService
      */
     protected function handleDELETE()
     {
-        \Auth::logout();
+        Session::logout();
 
         return ['success' => true];
     }
