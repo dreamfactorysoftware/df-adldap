@@ -12,7 +12,6 @@ use DreamFactory\Core\Exceptions\NotFoundException;
 use DreamFactory\Core\Utility\Session;
 use DreamFactory\Core\ADLdap\Contracts\User as LdapUserContract;
 
-
 class LDAP extends BaseRestService
 {
     /** Provider name */
@@ -106,55 +105,29 @@ class LDAP extends BaseRestService
     }
 
     /**
-     * Gets basic user session data.
+     * Handles login using this service.
+     *
+     * @param array $credential
+     * @param bool  $remember
      *
      * @return array
-     * @throws NotFoundException
+     * @throws \DreamFactory\Core\Exceptions\UnauthorizedException
      */
-    protected function handleGET()
+    public function handleLogin(array $credential, $remember = false)
     {
-        return Session::getPublicInfo();
-    }
+        $username = ArrayUtils::get($credential, 'username');
+        $password = ArrayUtils::get($credential, 'password');
+        $auth = $this->driver->authenticate($username, $password);
 
-    /**
-     * Handles the POST request on this service.
-     *
-     * @return array|bool
-     * @throws UnauthorizedException
-     * @throws \DreamFactory\Core\Exceptions\BadRequestException
-     * @throws \DreamFactory\Core\Exceptions\NotFoundException
-     */
-    protected function handlePOST()
-    {
-        if ('session' === $this->resource) {
-            $username = $this->getPayloadData('username');
-            $password = $this->getPayloadData('password');
-            $remember = boolval($this->getPayloadData('remember_me'));
-            $auth = $this->driver->authenticate($username, $password);
+        if ($auth) {
+            $ldapUser = $this->driver->getUser();
+            $user = $this->createShadowADLdapUser($ldapUser);
+            Session::setUserInfoWithJWT($user, $remember);
 
-            if ($auth) {
-                $ldapUser = $this->driver->getUser();
-                $user = $this->createShadowADLdapUser($ldapUser);
-                Session::setUserInfoWithJWT($user, $remember);
-                return Session::getPublicInfo();
-            } else {
-                throw new UnauthorizedException('Invalid username and password provided.');
-            }
+            return Session::getPublicInfo();
+        } else {
+            throw new UnauthorizedException('Invalid username and password provided.');
         }
-
-        return false;
-    }
-
-    /**
-     * Logs out user
-     *
-     * @return array
-     */
-    protected function handleDELETE()
-    {
-        Session::logout();
-
-        return ['success' => true];
     }
 
     /**
