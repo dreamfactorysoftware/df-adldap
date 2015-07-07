@@ -166,7 +166,7 @@ class LDAP extends BaseRestService
                 'first_name' => $ldapUser->getFirstName(),
                 'last_name'  => $ldapUser->getLastName(),
                 'email'      => $email,
-                'is_active'  => 1,
+                'is_active'  => true,
                 'adldap'     => $this->getProviderName(),
                 'password'   => $ldapUser->getPassword()
             ];

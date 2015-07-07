@@ -19,7 +19,7 @@ class DatabaseSeeder extends BaseModelSeeder
             'label'          => 'adLdap integration',
             'description'    => 'A service for supporting adLdap integration',
             'group'          => 'ldap',
-            'singleton'      => 1
+            'singleton'      => false
         ],
         [
             'name'           => 'ldap',
@@ -28,7 +28,7 @@ class DatabaseSeeder extends BaseModelSeeder
             'label'          => 'LDAP integration',
             'description'    => 'A service for supporting OpenLdap integration',
             'group'          => 'ldap',
-            'singleton'      => 1
+            'singleton'      => false
         ]
     ];
 }
