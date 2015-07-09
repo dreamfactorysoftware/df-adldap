@@ -5,6 +5,7 @@ use DreamFactory\Core\ADLdap\Models\LDAPConfig;
 use DreamFactory\Core\ADLdap\Services\ADLdap;
 use DreamFactory\Core\ADLdap\Services\LDAP;
 use DreamFactory\Core\Database\Seeds\BaseModelSeeder;
+use DreamFactory\Core\Enums\ServiceTypeGroups;
 use DreamFactory\Core\Models\ServiceType;
 
 class DatabaseSeeder extends BaseModelSeeder
@@ -18,7 +19,7 @@ class DatabaseSeeder extends BaseModelSeeder
             'config_handler' => LDAPConfig::class,
             'label'          => 'adLdap integration',
             'description'    => 'A service for supporting Active Directory integration',
-            'group'          => 'LDAP',
+            'group'          => ServiceTypeGroups::LDAP,
             'singleton'      => false
         ],
         [
@@ -27,7 +28,7 @@ class DatabaseSeeder extends BaseModelSeeder
             'config_handler' => LDAPConfig::class,
             'label'          => 'LDAP integration',
             'description'    => 'A service for supporting Open LDAP integration',
-            'group'          => 'LDAP',
+            'group'          => ServiceTypeGroups::LDAP,
             'singleton'      => false
         ]
     ];
