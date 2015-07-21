@@ -2,6 +2,7 @@
 namespace DreamFactory\Core\ADLdap\Services;
 
 use DreamFactory\Core\ADLdap\Components\OpenLdap;
+use DreamFactory\Core\Components\RequireExtensions;
 use DreamFactory\Core\Exceptions\UnauthorizedException;
 use DreamFactory\Core\Models\User;
 use DreamFactory\Core\Services\BaseRestService;
@@ -14,6 +15,8 @@ use DreamFactory\Core\ADLdap\Contracts\User as LdapUserContract;
 
 class LDAP extends BaseRestService
 {
+    use RequireExtensions;
+
     /** Provider name */
     const PROVIDER_NAME = 'ldap';
 
@@ -37,6 +40,8 @@ class LDAP extends BaseRestService
         ];
         ArrayUtils::set($settings, "verbAliases", $verbAliases);
         parent::__construct($settings);
+
+        static::checkExtensions(['ldap']);
 
         $this->config = ArrayUtils::get($settings, 'config');
         $this->defaultRole = ArrayUtils::get($this->config, 'default_role');
