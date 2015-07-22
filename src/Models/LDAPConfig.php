@@ -13,15 +13,15 @@ class LDAPConfig extends BaseServiceConfigModel
 
     protected $fillable = ['service_id', 'default_role', 'host', 'base_dn', 'account_suffix'];
 
-    public static function validateConfig($config)
+    public static function validateConfig($config, $create=true)
     {
         static::checkExtensions(['ldap']);
 
-        $validator = \Validator::make($config, [
+        $validator = static::makeValidator($config, [
             'default_role' => 'required',
             'host'         => 'required',
             'base_dn'      => 'required'
-        ]);
+        ], $create);
 
         if ($validator->fails()) {
             $messages = $validator->messages()->getMessages();
