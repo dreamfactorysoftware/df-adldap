@@ -13,6 +13,8 @@ class LDAPConfig extends BaseServiceConfigModel
 
     protected $fillable = ['service_id', 'default_role', 'host', 'base_dn', 'account_suffix'];
 
+    protected $casts = ['service_id' => 'integer', 'default_role' => 'integer'];
+
     public static function validateConfig($config, $create=true)
     {
         static::checkExtensions(['ldap']);
