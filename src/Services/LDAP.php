@@ -12,6 +12,7 @@ use DreamFactory\Core\ADLdap\Contracts\Provider as ADLdapProvider;
 use DreamFactory\Core\Exceptions\NotFoundException;
 use DreamFactory\Core\Utility\Session;
 use DreamFactory\Core\ADLdap\Contracts\User as LdapUserContract;
+use Carbon\Carbon;
 
 class LDAP extends BaseRestService
 {
@@ -127,6 +128,9 @@ class LDAP extends BaseRestService
         if ($auth) {
             $ldapUser = $this->driver->getUser();
             $user = $this->createShadowADLdapUser($ldapUser);
+            $user->last_login_date = Carbon::now()->toDateTimeString();
+            $user->confirm_code = null;
+            $user->save();
             Session::setUserInfoWithJWT($user, $remember);
 
             return Session::getPublicInfo();
