@@ -1,7 +1,6 @@
 {
   "name": "dreamfactory/df-adldap",
   "description": "Active Directory & LDAP support for DreamFactory Platform 2.0",
-  "minimum-stability": "dev",
   "keywords": [
     "dreamfactory",
     "dsp",
@@ -28,12 +27,17 @@
     "wiki": "https://wiki.dreamfactory.com"
   },
   "require": {
-    "dreamfactory/df-core": "dev-develop as dev-master",
-    "dreamfactory/df-user": "dev-develop as dev-master"
+    "dreamfactory/df-core": "~0.0.2",
+    "dreamfactory/df-user": "~0.0.2"
   },
   "autoload": {
     "psr-4": {
       "DreamFactory\\Core\\ADLdap\\": "src/"
+    }
+  },
+  "extra": {
+    "branch-alias": {
+      "dev-develop": "0.0.x-dev"
     }
   }
 }
