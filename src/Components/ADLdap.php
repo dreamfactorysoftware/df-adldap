@@ -62,6 +62,7 @@ class ADLdap extends OpenLdap
                 $auth = false;
             }
         } catch (\Exception $e) {
+            \Log::alert('Failed to authenticate with AD server using LDAP. '.$e->getMessage());
             $auth = false;
         }
 

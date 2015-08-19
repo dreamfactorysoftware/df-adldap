@@ -64,6 +64,7 @@ class OpenLdap implements Provider
         try {
             $auth = ldap_bind($this->connection, $this->dn, $password);
         } catch (\Exception $e) {
+            \Log::alert('Failed to authenticate using LDAP. '.$e->getMessage());
             $auth = false;
         }
 
