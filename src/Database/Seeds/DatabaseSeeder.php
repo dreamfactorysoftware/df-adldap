@@ -17,7 +17,7 @@ class DatabaseSeeder extends BaseModelSeeder
             'name'           => 'adldap',
             'class_name'     => ADLdap::class,
             'config_handler' => LDAPConfig::class,
-            'label'          => 'adLdap integration',
+            'label'          => 'Active Directory LDAP',
             'description'    => 'A service for supporting Active Directory integration',
             'group'          => ServiceTypeGroups::LDAP,
             'singleton'      => false
@@ -26,7 +26,7 @@ class DatabaseSeeder extends BaseModelSeeder
             'name'           => 'ldap',
             'class_name'     => LDAP::class,
             'config_handler' => LDAPConfig::class,
-            'label'          => 'LDAP integration',
+            'label'          => 'Standard LDAP',
             'description'    => 'A service for supporting Open LDAP integration',
             'group'          => ServiceTypeGroups::LDAP,
             'singleton'      => false
