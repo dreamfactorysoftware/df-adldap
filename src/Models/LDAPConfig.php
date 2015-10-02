@@ -55,7 +55,17 @@ class LDAPConfig extends BaseServiceConfigModel
             case 'default_role':
                 $schema['type'] = 'picklist';
                 $schema['values'] = $roleList;
-                $schema['description'] = 'Select a default role for users logging in with this AD/Ldap service type.';
+                $schema['description'] = 'Select a default role for users logging in with this AD/LDAP service type.';
+                break;
+            case 'host':
+                $schema['description'] = 'The host name for your AD/LDAP server.';
+                break;
+            case 'base_dn':
+                $schema['label'] = 'Base DN';
+                $schema['description'] = 'The base DN for your domain.';
+                break;
+            case 'account_suffix':
+                $schema['description'] = 'The full account suffix for your domain.';
                 break;
         }
     }
