@@ -9,9 +9,9 @@ use DreamFactory\Core\Services\BaseRestService;
 use DreamFactory\Library\Utility\ArrayUtils;
 use DreamFactory\Library\Utility\Enums\Verbs;
 use DreamFactory\Core\ADLdap\Contracts\Provider as ADLdapProvider;
-use DreamFactory\Core\Exceptions\NotFoundException;
 use DreamFactory\Core\Utility\Session;
 use DreamFactory\Core\ADLdap\Contracts\User as LdapUserContract;
+use DreamFactory\Core\Utility\DataFormatter;
 use Carbon\Carbon;
 
 class LDAP extends BaseRestService
@@ -29,6 +29,14 @@ class LDAP extends BaseRestService
 
     /** @var  ADLdapProvider */
     protected $driver;
+
+    /** @type array Service Resources */
+    protected $resources = [];
+
+    public function getResources($only_handlers = false)
+    {
+        return ($only_handlers) ? $this->resources : array_values($this->resources);
+    }
 
     /**
      * @param array $settings
@@ -188,5 +196,42 @@ class LDAP extends BaseRestService
         User::applyDefaultUserAppRole($user, $defaultRole);
 
         return $user;
+    }
+
+    /**
+     * Cleans and re-formats data.
+     *
+     * @param array $object
+     *
+     * @return array
+     */
+    public static function cleanData(array $object)
+    {
+        foreach ($object as $key => $value) {
+            if ($key === 'count') {
+                unset($object[$key]);
+                continue;
+            }
+            if (is_numeric($key)) {
+                unset($object[$key]);
+                continue;
+            } else if (is_array($value) && isset($value[0]) && !DataFormatter::isPrintable($value[0])) {
+                unset($object[$key]);
+                continue;
+            } else if (is_string($value) && !DataFormatter::isPrintable($value)) {
+                unset($object[$key]);
+                continue;
+            }
+
+            if (is_array($value)) {
+                if (ArrayUtils::get($value, 'count') === 1) {
+                    $object[$key] = $value[0];
+                } else if (ArrayUtils::get($value, 'count') > 1) {
+                    unset($object[$key]['count']);
+                }
+            }
+        }
+
+        return $object;
     }
 }

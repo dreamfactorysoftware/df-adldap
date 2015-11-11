@@ -12,11 +12,22 @@ class LDAPConfig extends BaseServiceConfigModel
 
     protected $table = 'ldap_config';
 
-    protected $fillable = ['service_id', 'default_role', 'host', 'base_dn', 'account_suffix'];
+    protected $fillable = [
+        'service_id',
+        'default_role',
+        'host',
+        'base_dn',
+        'account_suffix',
+        'username',
+        'password',
+        'map_group_to_role'
+    ];
 
-    protected $casts = ['service_id' => 'integer', 'default_role' => 'integer'];
+    protected $encrypted = ['password'];
 
-    public static function validateConfig($config, $create=true)
+    protected $casts = ['service_id' => 'integer', 'default_role' => 'integer', 'map_group_to_role' => 'boolean'];
+
+    public static function validateConfig($config, $create = true)
     {
         static::checkExtensions(['ldap']);
 
@@ -42,7 +53,7 @@ class LDAPConfig extends BaseServiceConfigModel
         $roles = Role::whereIsActive(1)->get();
         $roleList = [];
 
-        foreach($roles as $role){
+        foreach ($roles as $role) {
             $roleList[] = [
                 'label' => $role->name,
                 'name'  => $role->id
@@ -66,6 +77,15 @@ class LDAPConfig extends BaseServiceConfigModel
                 break;
             case 'account_suffix':
                 $schema['description'] = 'The full account suffix for your domain.';
+                break;
+            case 'map_group_to_role':
+                $schema['description'] = 'Checking this will map your Roles to AD Groups.';
+                break;
+            case 'username':
+                $schema['description'] = '(Optional) Enter AD administrator username to enable additional features.';
+                break;
+            case 'password':
+                $schema['description'] = '(Optional) Enter AD administrator password to enable additional features.';
                 break;
         }
     }

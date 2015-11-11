@@ -20,7 +20,7 @@ interface Provider
      *
      * @return string
      */
-    public function getDn($username, $uidField = 'uid');
+    public function getUserDn($username, $uidField = 'uid');
 
     /**
      * Authenticates User.
@@ -63,9 +63,9 @@ interface Provider
     /**
      * Gets the domain name.
      *
-     * @param string $baseDn
+     * @param string $dn
      *
      * @return string
      */
-    public static function getDomainName($baseDn);
+    public static function getDomainName($dn);
 }

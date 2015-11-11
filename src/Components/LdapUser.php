@@ -2,31 +2,49 @@
 namespace DreamFactory\Core\ADLdap\Components;
 
 use DreamFactory\Core\ADLdap\Contracts\User as LdapUserContract;
+use DreamFactory\Core\ADLdap\Services\LDAP;
+use DreamFactory\Core\Exceptions\InternalServerErrorException;
 use DreamFactory\Library\Utility\ArrayUtils;
 use DreamFactory\Core\Exceptions\NotFoundException;
-use DreamFactory\Core\Exceptions\UnauthorizedException;
-use DreamFactory\Core\ADLdap\Contracts\Provider as ADLdapProvider;
 
 class LdapUser implements LdapUserContract
 {
-    /** @var ADLdapProvider */
-    protected $driver;
-
     /** @var array */
     protected $data = [];
 
     /**
-     * @param ADLdapProvider $driver
-     *
-     * @throws UnauthorizedException
+     * @param array $userInfo
      */
-    public function __construct(ADLdapProvider $driver)
+    public function __construct(array $userInfo)
     {
-        if (!$driver->isAuthenticated()) {
-            throw new UnauthorizedException('User is not authenticated.');
+        $this->data = static::cleanUserData($userInfo);
+        $this->validate();
+    }
+
+    /**
+     * Cleans and re-formats user data.
+     *
+     * @param array $user
+     *
+     * @return array
+     */
+    protected function cleanUserData(array $user)
+    {
+        return LDAP::cleanData($user);
+    }
+
+    /**
+     * Validates user data array.
+     *
+     * @throws \DreamFactory\Core\Exceptions\InternalServerErrorException
+     */
+    protected function validate()
+    {
+        $attributes = array_keys($this->data);
+
+        if (!in_array('dn', $attributes) || !in_array('objectclass', $attributes) || !in_array('uid', $attributes)) {
+            throw new InternalServerErrorException('Cannot initiate LDAP user. Invalid user data supplied.');
         }
-        $this->driver = $driver;
-        $this->data = $driver->getUserInfo();
     }
 
     /**
@@ -34,9 +52,7 @@ class LdapUser implements LdapUserContract
      */
     public function getDomain()
     {
-        $baseDn = $this->driver->getBaseDn();
-
-        return $this->driver->getDomainName($baseDn);
+        return OpenLdap::getDomainName($this->getDn());
     }
 
     /**
@@ -44,11 +60,7 @@ class LdapUser implements LdapUserContract
      */
     public function getData()
     {
-        if (ArrayUtils::get($this->data, 'count') > 0) {
-            return ArrayUtils::get($this->data, 0);
-        } else {
-            throw new NotFoundException('No data found for Ldap User,');
-        }
+        return $this->data;
     }
 
     /**
@@ -58,7 +70,7 @@ class LdapUser implements LdapUserContract
     {
         $data = $this->getData();
 
-        return ArrayUtils::getDeep($data, 'uidnumber', 0);
+        return ArrayUtils::get($data, 'uidnumber');
     }
 
     /**
@@ -68,7 +80,7 @@ class LdapUser implements LdapUserContract
     {
         $data = $this->getData();
 
-        return ArrayUtils::getDeep($data, 'uid', 0);
+        return ArrayUtils::get($data, 'uid');
     }
 
     /**
@@ -78,7 +90,7 @@ class LdapUser implements LdapUserContract
     {
         $data = $this->getData();
 
-        return ArrayUtils::getDeep($data, 'cn', 0);
+        return ArrayUtils::get($data, 'cn');
     }
 
     /**
@@ -88,7 +100,7 @@ class LdapUser implements LdapUserContract
     {
         $data = $this->getData();
 
-        return ArrayUtils::getDeep($data, 'givenname', 0);
+        return ArrayUtils::get($data, 'givenname');
     }
 
     /**
@@ -98,7 +110,7 @@ class LdapUser implements LdapUserContract
     {
         $data = $this->getData();
 
-        return ArrayUtils::getDeep($data, 'sn', 0);
+        return ArrayUtils::get($data, 'sn');
     }
 
     /**
@@ -108,7 +120,7 @@ class LdapUser implements LdapUserContract
     {
         $data = $this->getData();
 
-        return ArrayUtils::getDeep($data, 'mail', 0);
+        return ArrayUtils::get($data, 'mail');
     }
 
     /**
@@ -118,7 +130,7 @@ class LdapUser implements LdapUserContract
     {
         $data = $this->getData();
 
-        $password = ArrayUtils::getDeep($data, 'userpassword', 0);
+        $password = ArrayUtils::get($data, 'userpassword');
         $password .= $this->getDn();
         $password .= time();
         $password = bcrypt($password);
@@ -141,10 +153,6 @@ class LdapUser implements LdapUserContract
 
         $data = $this->getData();
 
-        if (in_array($key, ['dn', 'count'])) {
-            return ArrayUtils::get($data, $key);
-        }
-
-        return ArrayUtils::getDeep($data, $key, 0);
+        return ArrayUtils::get($data, $key);
     }
 }

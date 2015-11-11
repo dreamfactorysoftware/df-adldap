@@ -55,14 +55,14 @@ class ADLdap extends OpenLdap
             $preAuth = ldap_bind($this->connection, $username . '@' . $accountSuffix, $password);
 
             if ($preAuth) {
-                $this->dn = $this->getDn($username, 'samaccountname');
+                $this->userDn = $this->getUserDn($username, 'samaccountname');
 
-                $auth = ldap_bind($this->connection, $this->dn, $password);
+                $auth = ldap_bind($this->connection, $this->userDn, $password);
             } else {
                 $auth = false;
             }
         } catch (\Exception $e) {
-            \Log::alert('Failed to authenticate with AD server using LDAP. '.$e->getMessage());
+            \Log::alert('Failed to authenticate with AD server using LDAP. ' . $e->getMessage());
             $auth = false;
         }
 
@@ -76,6 +76,6 @@ class ADLdap extends OpenLdap
      */
     public function getUser()
     {
-        return new ADUser($this);
+        return new ADUser($this->getUserInfo());
     }
 }
