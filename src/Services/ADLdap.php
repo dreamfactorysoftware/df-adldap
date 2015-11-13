@@ -1,9 +1,9 @@
 <?php
 namespace DreamFactory\Core\ADLdap\Services;
 
-use DreamFactory\Core\ADLdap\Resources\ADComputer;
-use DreamFactory\Core\ADLdap\Resources\ADGroup;
-use DreamFactory\Core\ADLdap\Resources\ADUser;
+use DreamFactory\Core\ADLdap\Resources\Computer;
+use DreamFactory\Core\ADLdap\Resources\Group;
+use DreamFactory\Core\ADLdap\Resources\User;
 use DreamFactory\Library\Utility\ArrayUtils;
 use DreamFactory\Core\Exceptions\UnauthorizedException;
 
@@ -14,19 +14,19 @@ class ADLdap extends LDAP
 
     /** @type array Service Resources */
     protected $resources = [
-        ADComputer::RESOURCE_NAME => [
-            'name'       => ADComputer::RESOURCE_NAME,
-            'class_name' => ADComputer::class,
+        Computer::RESOURCE_NAME => [
+            'name'       => Computer::RESOURCE_NAME,
+            'class_name' => Computer::class,
             'label'      => 'Computer'
         ],
-        ADGroup::RESOURCE_NAME    => [
-            'name'       => ADGroup::RESOURCE_NAME,
-            'class_name' => ADGroup::class,
+        Group::RESOURCE_NAME    => [
+            'name'       => Group::RESOURCE_NAME,
+            'class_name' => Group::class,
             'label'      => 'Group'
         ],
-        ADUser::RESOURCE_NAME     => [
-            'name'       => ADUser::RESOURCE_NAME,
-            'class_name' => ADUser::class,
+        User::RESOURCE_NAME     => [
+            'name'       => User::RESOURCE_NAME,
+            'class_name' => User::class,
             'label'      => 'User'
         ]
     ];

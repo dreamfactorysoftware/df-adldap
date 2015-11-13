@@ -1,7 +1,7 @@
 <?php
 namespace DreamFactory\Core\ADLdap\Resources;
 
-class ADComputer
+class Computer
 {
     const RESOURCE_NAME = 'computer';
 }

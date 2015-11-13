@@ -5,6 +5,7 @@ use DreamFactory\Core\ADLdap\Contracts\Provider;
 use DreamFactory\Core\Exceptions\InternalServerErrorException;
 use DreamFactory\Library\Utility\ArrayUtils;
 use DreamFactory\Core\Exceptions\BadRequestException;
+use DreamFactory\Core\Exceptions\NotFoundException;
 
 class OpenLdap implements Provider
 {
@@ -93,12 +94,7 @@ class OpenLdap implements Provider
     {
         if ($this->isAuthenticated()) {
             if (empty($this->userData)) {
-                $rs = ldap_read($this->connection, $this->userDn, "(objectclass=*)");
-                $userInfo = ldap_get_entries($this->connection, $rs);
-
-                if (isset($userInfo[0])) {
-                    $this->userData = $userInfo[0];
-                }
+                $this->userData = $this->getObjectByDn($this->userDn);
             }
 
             return $this->userData;
@@ -107,12 +103,40 @@ class OpenLdap implements Provider
         return [];
     }
 
-    /**
-     * @return LdapUser
-     */
+    /** @inheritdoc */
+    public function getObjectByDn($dn)
+    {
+        $rs = ldap_read($this->connection, $dn, "(objectclass=*)");
+        $objInfo = ldap_get_entries($this->connection, $rs);
+
+        if (isset($objInfo[0])) {
+            return $objInfo[0];
+        }
+
+        return [];
+    }
+
+    /** @inheritdoc */
     public function getUser()
     {
         return new LdapUser($this->getUserInfo());
+    }
+
+    /** @inheritdoc */
+    public function getGroups($username = null, $attributes = [])
+    {
+        return [];
+    }
+
+    /** @inheritdoc */
+    public function getUserByUserName($username)
+    {
+        $dn = $this->getUserDn($username);
+        if (empty($dn)) {
+            throw new NotFoundException('User not found by username [' . $username . ']');
+        }
+
+        return $this->getUser($this->getObjectByDn($dn));
     }
 
     /**
@@ -190,5 +214,29 @@ class OpenLdap implements Provider
         $result = ldap_get_entries($connection, $search);
 
         return $result;
+    }
+
+    /** @inheritdoc */
+    public function getGroupByCn($cn)
+    {
+        // TODO: Implement getGroupByCn() method.
+    }
+
+    /** @inheritdoc */
+    public function listUser(array $attributes = [])
+    {
+        // TODO: Implement listUser() method.
+    }
+
+    /** @inheritdoc */
+    public function listGroup(array $attributes = [])
+    {
+        // TODO: Implement listGroup() method.
+    }
+
+    /** @inheritdoc */
+    public function listComputer(array $attributes = [])
+    {
+        // TODO: Implement listComputer() method.
     }
 }

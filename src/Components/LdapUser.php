@@ -2,16 +2,10 @@
 namespace DreamFactory\Core\ADLdap\Components;
 
 use DreamFactory\Core\ADLdap\Contracts\User as LdapUserContract;
-use DreamFactory\Core\ADLdap\Services\LDAP;
-use DreamFactory\Core\Exceptions\InternalServerErrorException;
 use DreamFactory\Library\Utility\ArrayUtils;
-use DreamFactory\Core\Exceptions\NotFoundException;
 
-class LdapUser implements LdapUserContract
+class LdapUser extends BaseObject implements LdapUserContract
 {
-    /** @var array */
-    protected $data = [];
-
     /**
      * @param array $userInfo
      */
@@ -28,9 +22,9 @@ class LdapUser implements LdapUserContract
      *
      * @return array
      */
-    protected function cleanUserData(array $user)
+    public static function cleanUserData(array $user)
     {
-        return LDAP::cleanData($user);
+        return static::cleanData($user);
     }
 
     /**
@@ -40,11 +34,7 @@ class LdapUser implements LdapUserContract
      */
     protected function validate()
     {
-        $attributes = array_keys($this->data);
-
-        if (!in_array('dn', $attributes) || !in_array('objectclass', $attributes) || !in_array('uid', $attributes)) {
-            throw new InternalServerErrorException('Cannot initiate LDAP user. Invalid user data supplied.');
-        }
+        return true;
     }
 
     /**
@@ -58,19 +48,9 @@ class LdapUser implements LdapUserContract
     /**
      * {@inheritdoc}
      */
-    public function getData()
-    {
-        return $this->data;
-    }
-
-    /**
-     * {@inheritdoc}
-     */
     public function getId()
     {
-        $data = $this->getData();
-
-        return ArrayUtils::get($data, 'uidnumber');
+        return ArrayUtils::get($this->data, 'uidnumber');
     }
 
     /**
@@ -78,9 +58,7 @@ class LdapUser implements LdapUserContract
      */
     public function getUid()
     {
-        $data = $this->getData();
-
-        return ArrayUtils::get($data, 'uid');
+        return ArrayUtils::get($this->data, 'uid');
     }
 
     /**
@@ -88,9 +66,7 @@ class LdapUser implements LdapUserContract
      */
     public function getName()
     {
-        $data = $this->getData();
-
-        return ArrayUtils::get($data, 'cn');
+        return ArrayUtils::get($this->data, 'cn');
     }
 
     /**
@@ -98,9 +74,7 @@ class LdapUser implements LdapUserContract
      */
     public function getFirstName()
     {
-        $data = $this->getData();
-
-        return ArrayUtils::get($data, 'givenname');
+        return ArrayUtils::get($this->data, 'givenname');
     }
 
     /**
@@ -108,9 +82,7 @@ class LdapUser implements LdapUserContract
      */
     public function getLastName()
     {
-        $data = $this->getData();
-
-        return ArrayUtils::get($data, 'sn');
+        return ArrayUtils::get($this->data, 'sn');
     }
 
     /**
@@ -118,9 +90,7 @@ class LdapUser implements LdapUserContract
      */
     public function getEmail()
     {
-        $data = $this->getData();
-
-        return ArrayUtils::get($data, 'mail');
+        return ArrayUtils::get($this->data, 'mail');
     }
 
     /**
@@ -128,31 +98,11 @@ class LdapUser implements LdapUserContract
      */
     public function getPassword()
     {
-        $data = $this->getData();
-
-        $password = ArrayUtils::get($data, 'userpassword');
+        $password = ArrayUtils::get($this->data, 'userpassword');
         $password .= $this->getDn();
         $password .= time();
         $password = bcrypt($password);
 
         return $password;
-    }
-
-    /**
-     * Magic method to fetch any user value.
-     *
-     * @param string $method
-     * @param array  $args
-     *
-     * @return mixed
-     * @throws NotFoundException
-     */
-    public function __call($method, $args)
-    {
-        $key = strtolower(substr($method, 3));
-
-        $data = $this->getData();
-
-        return ArrayUtils::get($data, $key);
     }
 }

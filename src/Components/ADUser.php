@@ -11,9 +11,7 @@ class ADUser extends LdapUser
      */
     public function getUid()
     {
-        $data = $this->getData();
-
-        return ArrayUtils::get($data, 'samaccountname');
+        return ArrayUtils::get($this->data, 'samaccountname');
     }
 
     /**
@@ -21,7 +19,7 @@ class ADUser extends LdapUser
      */
     public function getName()
     {
-        return ArrayUtils::get($this->getData(), 'name');
+        return ArrayUtils::get($this->data, 'name');
     }
 
     /**
@@ -31,10 +29,6 @@ class ADUser extends LdapUser
      */
     protected function validate()
     {
-        $attributes = array_keys($this->data);
-
-        if (!in_array('samaccountname', $attributes)) {
-            throw new InternalServerErrorException('Cannot initiate Active Directory user. Invalid user data supplied.');
-        }
+        return true;
     }
 }

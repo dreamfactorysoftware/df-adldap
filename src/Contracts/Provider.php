@@ -1,7 +1,8 @@
 <?php
 namespace DreamFactory\Core\ADLdap\Contracts;
 
-use DreamFactory\Core\ADLdap\Contracts\User as LdapUser;
+use DreamFactory\Core\ADLdap\Contracts\User as ADLdapUser;
+use DreamFactory\Core\ADLdap\Contracts\Group as ADLdapGroup;
 
 interface Provider
 {
@@ -47,11 +48,48 @@ interface Provider
     public function getUserInfo();
 
     /**
-     * Gets the user object.
+     * Gets the user object of the authenticated user.
      *
-     * @return LdapUser
+     * @return ADLdapUser
      */
     public function getUser();
+
+    /**
+     * Gets the list of groups of the authenticated user.
+     *
+     * @param string $username
+     * @param array  $attributes
+     *
+     * @return array
+     */
+    public function getGroups($username = null, $attributes = []);
+
+    /**
+     * Gets user object by username.
+     *
+     * @param string $username
+     *
+     * @return ADLdapUser
+     */
+    public function getUserByUserName($username);
+
+    /**
+     * Gets group object by group cn.
+     *
+     * @param $cn
+     *
+     * @return ADLdapGroup
+     */
+    public function getGroupByCn($cn);
+
+    /**
+     * Gets AD/Ldap objects by its dn
+     *
+     * @param string $dn
+     *
+     * @return array
+     */
+    public function getObjectByDn($dn);
 
     /**
      * Gets the connection resource.
@@ -68,4 +106,31 @@ interface Provider
      * @return string
      */
     public static function getDomainName($dn);
+
+    /**
+     * Lists all users.
+     *
+     * @param array $attributes
+     *
+     * @return mixed
+     */
+    public function listUser(array $attributes = []);
+
+    /**
+     * Lists all groups.
+     *
+     * @param array $attributes
+     *
+     * @return mixed
+     */
+    public function listGroup(array $attributes = []);
+
+    /**
+     * Lists all computers.
+     *
+     * @param array $attributes
+     *
+     * @return mixed
+     */
+    public function listComputer(array $attributes = []);
 }
