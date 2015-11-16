@@ -47,13 +47,16 @@ class ADLdap extends LDAP
      * Authenticates the Admin user. Used for utilizing additional
      * features of this service.
      *
+     * @param string $username
+     * @param string $password
+     *
      * @return mixed
      * @throws \DreamFactory\Core\Exceptions\UnauthorizedException
      */
-    public function authenticateAdminUser()
+    public function authenticateAdminUser($username = null, $password = null)
     {
-        $username = ArrayUtils::get($this->config, 'username');
-        $password = ArrayUtils::get($this->config, 'password');
+        $username = (empty($username))? ArrayUtils::get($this->config, 'username') : $username;
+        $password = (empty($password))? ArrayUtils::get($this->config, 'password') : $password;
 
         $auth = $this->driver->authenticate($username, $password);
 
