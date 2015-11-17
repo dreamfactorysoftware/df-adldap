@@ -1,13 +1,12 @@
 <?php
 namespace DreamFactory\Core\ADLdap\Resources;
 
-use DreamFactory\Core\Resources\BaseRestResource;
 use DreamFactory\Core\Contracts\RequestHandlerInterface;
 use DreamFactory\Core\Utility\ResourcesWrapper;
 use DreamFactory\Core\Enums\ApiOptions;
 use DreamFactory\Core\ADLdap\Contracts\Provider;
 
-class Group extends BaseRestResource
+class Group extends BaseADLdapResource
 {
     /**
      * Name of this resource.
@@ -61,5 +60,24 @@ class Group extends BaseRestResource
         }
 
         return ResourcesWrapper::cleanResources($resources);
+    }
+
+    /** @inheritdoc */
+    public function getApiDocInfo()
+    {
+        $base = parent::getApiDocInfo();
+
+        $base['models']['GroupResponse']['properties'] = array_merge($base['models']['GroupResponse']['properties'], [
+            'member' => [
+                'type'        => 'array',
+                'description' => 'Lists the member of the group.'
+            ],
+            'description' => [
+                'type' => 'string',
+                'description' => 'Description of the group.'
+            ],
+        ]);
+
+        return $base;
     }
 }

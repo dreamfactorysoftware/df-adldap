@@ -32,6 +32,7 @@ class LDAP extends BaseRestService
     /** @type array Service Resources */
     protected $resources = [];
 
+    /** @inheritdoc */
     public function getResources($only_handlers = false)
     {
         return ($only_handlers) ? $this->resources : array_values($this->resources);
@@ -80,7 +81,7 @@ class LDAP extends BaseRestService
     /**
      * @return array|null
      */
-    public function getDefaultRole()
+    public function getRole()
     {
         return $this->defaultRole;
     }
@@ -190,7 +191,7 @@ class LDAP extends BaseRestService
             $user = User::create($data);
         }
 
-        $defaultRole = $this->getDefaultRole();
+        $defaultRole = $this->getRole();
 
         User::applyDefaultUserAppRole($user, $defaultRole);
 

@@ -2,12 +2,11 @@
 namespace DreamFactory\Core\ADLdap\Resources;
 
 use DreamFactory\Core\Enums\ApiOptions;
-use DreamFactory\Core\Resources\BaseRestResource;
 use DreamFactory\Core\ADLdap\Contracts\Provider;
 use DreamFactory\Core\Contracts\RequestHandlerInterface;
 use DreamFactory\Core\Utility\ResourcesWrapper;
 
-class User extends BaseRestResource
+class User extends BaseADLdapResource
 {
     /**
      * Name of this resource.
@@ -55,5 +54,36 @@ class User extends BaseRestResource
         }
 
         return ResourcesWrapper::cleanResources($resources);
+    }
+
+    /** @inheritdoc */
+    public function getApiDocInfo()
+    {
+        $base = parent::getApiDocInfo();
+
+        $base['models']['UserResponse']['properties'] = array_merge($base['models']['UserResponse']['properties'], [
+            'sn' => [
+                'type' => 'string',
+                'description' => 'Surname of the user.'
+            ],
+            'givenname' => [
+                'type' => 'string',
+                'description' => 'First name of the user.'
+            ],
+            'memberof' => [
+                'type' => 'array',
+                'description' => 'Lists the groups (dn) this user is a member of.'
+            ],
+            'name' => [
+                'type' => 'string',
+                'description' => 'Full name of the user.'
+            ],
+            'samaccountname' => [
+                'type' => 'string',
+                'description' => 'User login name.'
+            ]
+        ]);
+
+        return $base;
     }
 }

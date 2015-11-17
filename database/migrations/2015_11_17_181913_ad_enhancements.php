@@ -3,7 +3,7 @@
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Database\Migrations\Migration;
 
-class UpdateLdapConfigTable extends Migration
+class AdEnhancements extends Migration
 {
     /**
      * Run the migrations.
@@ -29,6 +29,14 @@ class UpdateLdapConfigTable extends Migration
                 }
             );
         }
+        Schema::create(
+            'role_adldap',
+            function (Blueprint $t){
+                $t->integer('role_id')->unsigned()->primary();
+                $t->foreign('role_id')->references('id')->on('role')->onDelete('cascade');
+                $t->string('dn')->unique();
+            }
+        );
     }
 
     /**
@@ -55,5 +63,6 @@ class UpdateLdapConfigTable extends Migration
                 }
             );
         }
+        Schema::dropIfExists('ldap_config');
     }
 }
