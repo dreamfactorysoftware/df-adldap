@@ -23,7 +23,6 @@ class User extends BaseADLdapResource
     {
         parent::setParent($parent);
         $this->provider = $this->parent->getDriver();
-        $this->parent->authenticateAdminUser();
     }
 
     /**
@@ -34,6 +33,7 @@ class User extends BaseADLdapResource
      */
     protected function handleGET()
     {
+        $this->parent->authenticateAdminUser();
         $username = $this->resource;
         $fields = $this->request->getParameter(ApiOptions::FIELDS, ApiOptions::FIELDS_ALL);
         $attributes = [];
@@ -62,24 +62,24 @@ class User extends BaseADLdapResource
         $base = parent::getApiDocInfo();
 
         $base['models']['UserResponse']['properties'] = array_merge($base['models']['UserResponse']['properties'], [
-            'sn' => [
-                'type' => 'string',
+            'sn'             => [
+                'type'        => 'string',
                 'description' => 'Surname of the user.'
             ],
-            'givenname' => [
-                'type' => 'string',
+            'givenname'      => [
+                'type'        => 'string',
                 'description' => 'First name of the user.'
             ],
-            'memberof' => [
-                'type' => 'array',
+            'memberof'       => [
+                'type'        => 'array',
                 'description' => 'Lists the groups (dn) this user is a member of.'
             ],
-            'name' => [
-                'type' => 'string',
+            'name'           => [
+                'type'        => 'string',
                 'description' => 'Full name of the user.'
             ],
             'samaccountname' => [
-                'type' => 'string',
+                'type'        => 'string',
                 'description' => 'User login name.'
             ]
         ]);

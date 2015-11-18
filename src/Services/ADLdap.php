@@ -58,7 +58,7 @@ class ADLdap extends LDAP
         $pwd = (empty($password)) ? ArrayUtils::get($this->config, 'password') : $password;
 
         if (empty($user) || empty($pwd)) {
-            throw new BadRequestException('No username and/or password provided in service definition.');
+            throw new BadRequestException('No username and/or password found in service definition.');
         }
 
         $auth = $this->driver->authenticate($user, $pwd);

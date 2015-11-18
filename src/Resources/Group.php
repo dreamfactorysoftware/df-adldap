@@ -23,7 +23,6 @@ class Group extends BaseADLdapResource
     {
         parent::setParent($parent);
         $this->provider = $this->parent->getDriver();
-        $this->parent->authenticateAdminUser();
     }
 
     /**
@@ -33,6 +32,7 @@ class Group extends BaseADLdapResource
      */
     protected function handleGET()
     {
+        $this->parent->authenticateAdminUser();
         $groupName = $this->resource;
         $username = $this->request->getParameter('user');
         $fields = $this->request->getParameter(ApiOptions::FIELDS, ApiOptions::FIELDS_ALL);
@@ -67,13 +67,24 @@ class Group extends BaseADLdapResource
     {
         $base = parent::getApiDocInfo();
 
+        $base['apis'][0]['operations'][0]['parameters'][] = [
+            'name'          => 'user',
+            'description'   => 'Accepts an username to list groups by username.',
+            'allowMultiple' => false,
+            'type'          => 'string',
+            'format'        => 'int32',
+            'paramType'     => 'query',
+            'required'      => false,
+            'default'       => null,
+        ];
+
         $base['models']['GroupResponse']['properties'] = array_merge($base['models']['GroupResponse']['properties'], [
-            'member' => [
+            'member'      => [
                 'type'        => 'array',
                 'description' => 'Lists the member of the group.'
             ],
             'description' => [
-                'type' => 'string',
+                'type'        => 'string',
                 'description' => 'Description of the group.'
             ],
         ]);
