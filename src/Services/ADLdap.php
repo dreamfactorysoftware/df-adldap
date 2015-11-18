@@ -4,6 +4,7 @@ namespace DreamFactory\Core\ADLdap\Services;
 use DreamFactory\Core\ADLdap\Models\RoleADLdap;
 use DreamFactory\Core\ADLdap\Resources\Group;
 use DreamFactory\Core\ADLdap\Resources\User;
+use DreamFactory\Core\Exceptions\BadRequestException;
 use DreamFactory\Library\Utility\ArrayUtils;
 use DreamFactory\Core\Exceptions\UnauthorizedException;
 use DreamFactory\Core\Exceptions\InternalServerErrorException;
@@ -49,11 +50,16 @@ class ADLdap extends LDAP
      *
      * @return mixed
      * @throws \DreamFactory\Core\Exceptions\UnauthorizedException
+     * @throws BadRequestException
      */
     public function authenticateAdminUser($username = null, $password = null)
     {
         $user = (empty($username)) ? ArrayUtils::get($this->config, 'username') : $username;
         $pwd = (empty($password)) ? ArrayUtils::get($this->config, 'password') : $password;
+
+        if (empty($user) || empty($pwd)) {
+            throw new BadRequestException('No username and/or password provided in service definition.');
+        }
 
         $auth = $this->driver->authenticate($user, $pwd);
 
