@@ -14,6 +14,8 @@ class ServiceTypeSeeder extends BaseModelSeeder
 {
     protected $modelClass = ServiceType::class;
 
+    protected $allowUpdate = true;
+
     protected $records = [
         [
             'name'           => 'adldap',
