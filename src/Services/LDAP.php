@@ -9,7 +9,6 @@ use DreamFactory\Core\Services\BaseRestService;
 use DreamFactory\Library\Utility\ArrayUtils;
 use DreamFactory\Library\Utility\Enums\Verbs;
 use DreamFactory\Core\ADLdap\Contracts\Provider as ADLdapProvider;
-use DreamFactory\Core\Exceptions\NotFoundException;
 use DreamFactory\Core\Utility\Session;
 use DreamFactory\Core\ADLdap\Contracts\User as LdapUserContract;
 use Carbon\Carbon;
@@ -29,6 +28,15 @@ class LDAP extends BaseRestService
 
     /** @var  ADLdapProvider */
     protected $driver;
+
+    /** @type array Service Resources */
+    protected $resources = [];
+
+    /** @inheritdoc */
+    public function getResources($only_handlers = false)
+    {
+        return ($only_handlers) ? $this->resources : array_values($this->resources);
+    }
 
     /**
      * @param array $settings
@@ -73,7 +81,7 @@ class LDAP extends BaseRestService
     /**
      * @return array|null
      */
-    public function getDefaultRole()
+    public function getRole()
     {
         return $this->defaultRole;
     }
@@ -183,7 +191,7 @@ class LDAP extends BaseRestService
             $user = User::create($data);
         }
 
-        $defaultRole = $this->getDefaultRole();
+        $defaultRole = $this->getRole();
 
         User::applyDefaultUserAppRole($user, $defaultRole);
 

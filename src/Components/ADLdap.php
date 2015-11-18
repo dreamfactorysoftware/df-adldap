@@ -2,6 +2,8 @@
 namespace DreamFactory\Core\ADLdap\Components;
 
 use DreamFactory\Core\Exceptions\BadRequestException;
+use DreamFactory\Core\Exceptions\NotFoundException;
+use DreamFactory\Library\Utility\ArrayUtils;
 
 class ADLdap extends OpenLdap
 {
@@ -55,14 +57,14 @@ class ADLdap extends OpenLdap
             $preAuth = ldap_bind($this->connection, $username . '@' . $accountSuffix, $password);
 
             if ($preAuth) {
-                $this->dn = $this->getDn($username, 'samaccountname');
+                $this->userDn = $this->getUserDn($username, 'samaccountname');
 
-                $auth = ldap_bind($this->connection, $this->dn, $password);
+                $auth = ldap_bind($this->connection, $this->userDn, $password);
             } else {
                 $auth = false;
             }
         } catch (\Exception $e) {
-            \Log::alert('Failed to authenticate with AD server using LDAP. '.$e->getMessage());
+            \Log::alert('Failed to authenticate with AD server using LDAP. ' . $e->getMessage());
             $auth = false;
         }
 
@@ -71,11 +73,141 @@ class ADLdap extends OpenLdap
         return $auth;
     }
 
-    /**
-     * @return LdapUser
-     */
+    /** @inheritdoc */
     public function getUser()
     {
-        return new ADUser($this);
+        return new ADUser($this->getUserInfo());
+    }
+
+    /** @inheritdoc */
+    public function getGroups($username = null, $attributes = [])
+    {
+        $result = [];
+
+        if (empty($username)) {
+            $user = $this->getUser();
+        } else {
+            $user = $this->getUserByUserName($username);
+        }
+        $groups = $user->memberof;
+
+        if (!is_array($groups)) {
+            $groups = [$groups];
+        }
+
+        foreach ($groups as $group) {
+            $adGroup = new ADGroup($this->getObjectByDn($group));
+
+            if (in_array('primary', $attributes) || empty($attributes)) {
+                $result[] = array_merge($adGroup->getData($attributes), ['primary' => false]);
+            } else {
+                $result[] = $adGroup->getData($attributes);
+            }
+        }
+
+        $primaryGroupId = $user->primarygroupid;
+        $primaryGroup = $this->getGroupByPrimaryGroupId($primaryGroupId);
+
+        if (in_array('primary', $attributes) || empty($attributes)) {
+            $result[] = array_merge($primaryGroup->getData($attributes), ['primary' => true]);
+        } else {
+            $result[] = $primaryGroup->getData($attributes);
+        }
+
+        return $result;
+    }
+
+    /** @inheritdoc */
+    public function getUserByUserName($username)
+    {
+        $dn = $this->getUserDn($username, 'samaccountname');
+        if (empty($dn)) {
+            throw new NotFoundException('User not found by username [' . $username . ']');
+        }
+
+        return new ADUser($this->getObjectByDn($dn));
+    }
+
+    /** @inheritdoc */
+    public function listUser(array $attributes = [])
+    {
+        $result = [];
+        $users = $this->search(
+            "(&(objectCategory=person)(objectClass=user)(samaccountname=*))",
+            $attributes
+        );
+
+        if ($users['count'] === 0) {
+            return [];
+        }
+
+        foreach ($users as $user) {
+            if (is_array($user)) {
+                $adUser = new ADUser($user);
+                $result[] = $adUser->getData($attributes);
+            }
+        }
+
+        return $result;
+    }
+
+    /** @inheritdoc */
+    public function getGroupByCn($cn)
+    {
+        $group = $this->search(
+            "(&(objectCategory=group)(objectClass=group)(cn=" . $cn . "))"
+        );
+        if (!ArrayUtils::get($group, 'count')) {
+            throw new NotFoundException('Group not found by cn [' . $cn . ']');
+        }
+
+        return new ADGroup($group[0]);
+    }
+
+    protected function getGroupByPrimaryGroupId($id)
+    {
+        $groups = $this->search(
+            "(&(objectCategory=group)(objectClass=group))",
+            ['*', 'primarygrouptoken']
+        );
+
+        array_shift($groups);
+
+        foreach ($groups as $group) {
+            if (ArrayUtils::getDeep($group, 'primarygrouptoken', 0) === $id) {
+                return new ADGroup($group);
+            }
+        }
+
+        throw new NotFoundException('Group not found by primarygrouptoken [' . $id . ']');
+    }
+
+    /** @inheritdoc */
+    public function listGroup(array $attributes = [])
+    {
+        $result = [];
+        $groups = $this->search(
+            "(&(objectCategory=group)(objectClass=group))",
+            $attributes
+        );
+
+        if ($groups['count'] === 0) {
+            return [];
+        }
+
+        foreach ($groups as $group) {
+            if (is_array($group)) {
+                $adGroup = new ADGroup($group);
+                $result[] = $adGroup->getData($attributes);
+            }
+        }
+
+        return $result;
+    }
+
+    /** @inheritdoc */
+    public function listComputer(array $attributes = [])
+    {
+        parent::listComputer(); // TODO: Change the autogenerated stub
     }
 }

@@ -4,7 +4,7 @@ namespace DreamFactory\Core\ADLdap\Contracts;
 interface User
 {
     /**
-     * Gets LDAP domain name.
+     * Gets AD/LDAP domain name.
      *
      * @return string
      */
