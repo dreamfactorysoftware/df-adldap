@@ -53,7 +53,7 @@ class BaseADLdapResource extends BaseRestResource
                 ],
             ],
             [
-                'path'        => $path . '/{id}',
+                'path'        => $path . '/{' . strtolower($name) . '_name}',
                 'operations'  => [
                     [
                         'method'           => 'GET',
@@ -63,7 +63,7 @@ class BaseADLdapResource extends BaseRestResource
                         'event_name'       => $eventPath . '.read',
                         'parameters'       => [
                             [
-                                'name'          => 'id',
+                                'name'          => strtolower($name) . '_name',
                                 'description'   => 'Identifier of the record to retrieve.',
                                 'allowMultiple' => false,
                                 'type'          => 'string',
