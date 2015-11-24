@@ -1,50 +1,33 @@
 <?php
+
 namespace DreamFactory\Core\ADLdap\Models;
 
-use DreamFactory\Core\Components\RequireExtensions;
-use DreamFactory\Core\Models\BaseServiceConfigModel;
-use DreamFactory\Core\Exceptions\BadRequestException;
 use DreamFactory\Core\Models\Role;
 
-class LDAPConfig extends BaseServiceConfigModel
+class ADConfig extends LDAPConfig
 {
-    use RequireExtensions;
-
-    protected $table = 'ldap_config';
-
+    /** @type array  */
     protected $fillable = [
         'service_id',
         'default_role',
         'host',
         'base_dn',
-        'account_suffix'
+        'account_suffix',
+        'username',
+        'password',
+        'map_group_to_role'
     ];
 
-    protected $hidden = ['map_group_to_role', 'username', 'password'];
+    /** @type array  */
+    protected $hidden = [];
 
-    protected $casts = ['service_id' => 'integer', 'default_role' => 'integer'];
+    /** @type array  */
+    protected $encrypted = ['password'];
 
-    public static function validateConfig($config, $create = true)
-    {
-        static::checkExtensions(['ldap']);
+    /** @type array  */
+    protected $casts = ['service_id' => 'integer', 'default_role' => 'integer', 'map_group_to_role' => 'boolean'];
 
-        $validator = static::makeValidator($config, [
-            'default_role' => 'required',
-            'host'         => 'required',
-            'base_dn'      => 'required'
-        ], $create);
-
-        if ($validator->fails()) {
-            $messages = $validator->messages()->getMessages();
-            throw new BadRequestException('Validation failed.', null, null, $messages);
-        }
-
-        return true;
-    }
-
-    /**
-     * @param array $schema
-     */
+    /** @inheritdoc */
     protected static function prepareConfigSchemaField(array &$schema)
     {
         $roles = Role::whereIsActive(1)->get();
@@ -74,6 +57,15 @@ class LDAPConfig extends BaseServiceConfigModel
                 break;
             case 'account_suffix':
                 $schema['description'] = 'The full account suffix for your domain.';
+                break;
+            case 'map_group_to_role':
+                $schema['description'] = 'Checking this will map your Roles to AD Groups.';
+                break;
+            case 'username':
+                $schema['description'] = '(Optional) Enter AD administrator username to enable additional features.';
+                break;
+            case 'password':
+                $schema['description'] = '(Optional) Enter AD administrator password to enable additional features.';
                 break;
         }
     }

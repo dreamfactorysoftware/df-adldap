@@ -2,8 +2,10 @@
 namespace DreamFactory\Core\ADLdap\Components;
 
 use DreamFactory\Core\ADLdap\Contracts\Provider;
+use DreamFactory\Core\Exceptions\InternalServerErrorException;
 use DreamFactory\Library\Utility\ArrayUtils;
 use DreamFactory\Core\Exceptions\BadRequestException;
+use DreamFactory\Core\Exceptions\NotFoundException;
 
 class OpenLdap implements Provider
 {
@@ -14,7 +16,7 @@ class OpenLdap implements Provider
     protected $baseDn;
 
     /** @var  string */
-    protected $dn;
+    protected $userDn;
 
     /** @var array */
     protected $userData = [];
@@ -59,12 +61,12 @@ class OpenLdap implements Provider
             throw new BadRequestException('No username and/or password provided.');
         }
 
-        $this->dn = $this->getDn($username);
+        $this->userDn = $this->getUserDn($username);
 
         try {
-            $auth = ldap_bind($this->connection, $this->dn, $password);
+            $auth = ldap_bind($this->connection, $this->userDn, $password);
         } catch (\Exception $e) {
-            \Log::alert('Failed to authenticate using LDAP. '.$e->getMessage());
+            \Log::alert('Failed to authenticate using LDAP. ' . $e->getMessage());
             $auth = false;
         }
 
@@ -90,10 +92,9 @@ class OpenLdap implements Provider
      */
     public function getUserInfo()
     {
-        if ($this->authenticated) {
+        if ($this->isAuthenticated()) {
             if (empty($this->userData)) {
-                $rs = ldap_read($this->connection, $this->dn, "(objectclass=*)");
-                $this->userData = ldap_get_entries($this->connection, $rs);
+                $this->userData = $this->getObjectByDn($this->userDn);
             }
 
             return $this->userData;
@@ -102,12 +103,40 @@ class OpenLdap implements Provider
         return [];
     }
 
-    /**
-     * @return LdapUser
-     */
+    /** @inheritdoc */
+    public function getObjectByDn($dn)
+    {
+        $rs = ldap_read($this->connection, $dn, "(objectclass=*)");
+        $objInfo = ldap_get_entries($this->connection, $rs);
+
+        if (isset($objInfo[0])) {
+            return $objInfo[0];
+        }
+
+        return [];
+    }
+
+    /** @inheritdoc */
     public function getUser()
     {
-        return new LdapUser($this);
+        return new LdapUser($this->getUserInfo());
+    }
+
+    /** @inheritdoc */
+    public function getGroups($username = null, $attributes = [])
+    {
+        return [];
+    }
+
+    /** @inheritdoc */
+    public function getUserByUserName($username)
+    {
+        $dn = $this->getUserDn($username);
+        if (empty($dn)) {
+            throw new NotFoundException('User not found by username [' . $username . ']');
+        }
+
+        return $this->getUser($this->getObjectByDn($dn));
     }
 
     /**
@@ -123,20 +152,26 @@ class OpenLdap implements Provider
     /**
      * Fetches domain name from base DN.
      *
-     * @param $baseDn
+     * @param $dn
      *
      * @return string
+     * @throws InternalServerErrorException
      */
-    public static function getDomainName($baseDn)
+    public static function getDomainName($dn)
     {
-        $baseDn = str_replace('DC=', 'dc=', $baseDn);
-        $baseDn = substr($baseDn, strpos($baseDn, 'dc='));
-        list($dc1, $dc2) = explode(',', $baseDn);
+        $dn = str_replace('DC=', 'dc=', $dn);
+        $dn = substr($dn, strpos($dn, 'dc='));
+        $dcs = explode(',', $dn);
 
-        $dc1 = substr($dc1, strpos($dc1, '=') + 1);
-        $dc2 = substr($dc2, strpos($dc2, '=') + 1);
+        if (!is_array($dcs)) {
+            throw new InternalServerErrorException('Cannot determine Domain name. Invalid Base Dn supplied.');
+        }
 
-        $domain = $dc1 . '.' . $dc2;
+        foreach ($dcs as $key => $dc) {
+            $dcs[$key] = substr($dc, strpos($dc, '=') + 1);
+        }
+
+        $domain = implode('.', $dcs);
 
         return $domain;
     }
@@ -149,7 +184,7 @@ class OpenLdap implements Provider
      *
      * @return string
      */
-    public function getDn($username, $uidField = 'uid')
+    public function getUserDn($username, $uidField = 'uid')
     {
         $baseDn = $this->baseDn;
         $connection = $this->connection;
@@ -160,5 +195,48 @@ class OpenLdap implements Provider
         $dn = ArrayUtils::getDeep($result, 0, 'dn');
 
         return $dn;
+    }
+
+    /**
+     * A generic function for searching AD/LDAP server.
+     *
+     * @param       $filter
+     * @param array $attributes
+     *
+     * @return array
+     */
+    public function search($filter, array $attributes = [])
+    {
+        $baseDn = $this->baseDn;
+        $connection = $this->connection;
+
+        $search = ldap_search($connection, $baseDn, $filter, $attributes);
+        $result = ldap_get_entries($connection, $search);
+
+        return $result;
+    }
+
+    /** @inheritdoc */
+    public function getGroupByCn($cn)
+    {
+        // TODO: Implement getGroupByCn() method.
+    }
+
+    /** @inheritdoc */
+    public function listUser(array $attributes = [])
+    {
+        // TODO: Implement listUser() method.
+    }
+
+    /** @inheritdoc */
+    public function listGroup(array $attributes = [])
+    {
+        // TODO: Implement listGroup() method.
+    }
+
+    /** @inheritdoc */
+    public function listComputer(array $attributes = [])
+    {
+        // TODO: Implement listComputer() method.
     }
 }
