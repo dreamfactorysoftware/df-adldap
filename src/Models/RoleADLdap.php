@@ -6,12 +6,15 @@ use DreamFactory\Core\Models\BaseModel;
 
 class RoleADLdap extends BaseModel
 {
-    /** @type string  */
+    /** @type string */
     protected $table = 'role_adldap';
 
-    /** @type array  */
+    /** @type string */
+    protected $primaryKey = 'role_id';
+
+    /** @type array */
     protected $fillable = ['role_id', 'dn'];
 
-    /** @type bool  */
+    /** @type bool */
     public $timestamps = false;
 }
