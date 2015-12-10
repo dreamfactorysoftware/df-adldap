@@ -3,6 +3,7 @@ namespace DreamFactory\Core\ADLdap\Contracts;
 
 use DreamFactory\Core\ADLdap\Contracts\User as ADLdapUser;
 use DreamFactory\Core\ADLdap\Contracts\Group as ADLdapGroup;
+use DreamFactory\Core\ADLdap\Contracts\Computer as ADLdapComputer;
 
 interface Provider
 {
@@ -81,6 +82,15 @@ interface Provider
      * @return ADLdapGroup
      */
     public function getGroupByCn($cn);
+
+    /**
+     * Gets computer object by its cn.
+     *
+     * @param $cn
+     *
+     * @return ADLdapComputer
+     */
+    public function getComputerByCn($cn);
 
     /**
      * Gets AD/Ldap objects by its dn

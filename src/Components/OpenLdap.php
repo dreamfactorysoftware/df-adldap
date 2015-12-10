@@ -222,6 +222,11 @@ class OpenLdap implements Provider
         // TODO: Implement getGroupByCn() method.
     }
 
+    public function getComputerByCn($cn)
+    {
+        // TODO: Implement getComputerByCn() method.
+    }
+
     /** @inheritdoc */
     public function listUser(array $attributes = [])
     {
