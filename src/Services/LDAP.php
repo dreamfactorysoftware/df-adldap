@@ -163,6 +163,9 @@ class LDAP extends BaseRestService
         $email = $ldapUser->getEmail();
         $serviceName = $this->getName();
 
+        \Log::debug('[AD debug] Original email: '.$email);
+        \Log::debug('[AD debug] Ad service name: '.$serviceName);
+
         if (empty($email)) {
             $uid = $ldapUser->getUid();
             if (empty($uid)) {
@@ -174,6 +177,8 @@ class LDAP extends BaseRestService
             list($emailId, $domain) = explode('@', $email);
             $email = $emailId . '+' . $serviceName . '@' . $domain;
         }
+
+        \Log::debug('[AD debug] Shadow user email: '.$email);
 
         $user = User::whereEmail($email)->first();
 
@@ -188,7 +193,10 @@ class LDAP extends BaseRestService
                 'password'   => $ldapUser->getPassword()
             ];
 
+            \Log::debug('[AD debug] Creating shadow user: ' . $data['name'] . '|' . $data['email']);
             $user = User::create($data);
+        } else {
+            \Log::debug('[AD debug] Shadow user NOT created. User already exists with eamil ' . $user->email);
         }
 
         $defaultRole = $this->getRole();

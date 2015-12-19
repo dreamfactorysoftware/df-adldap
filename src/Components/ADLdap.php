@@ -60,6 +60,8 @@ class ADLdap extends OpenLdap
                 $this->userDn = $this->getUserDn($username, 'samaccountname');
 
                 $auth = ldap_bind($this->connection, $this->userDn, $password);
+
+                \Log::debug('[AD debug] Auth success! User DN: '.$this->userDn);
             } else {
                 $auth = false;
             }
@@ -76,7 +78,9 @@ class ADLdap extends OpenLdap
     /** @inheritdoc */
     public function getUser()
     {
-        return new ADUser($this->getUserInfo());
+        $user = new ADUser($this->getUserInfo());
+        \Log::debug('[AD debug] Fetching AD user: '.print_r($user->getData(['samaccountname', 'cn']), true));
+        return $user;
     }
 
     /** @inheritdoc */
