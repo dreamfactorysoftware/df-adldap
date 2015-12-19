@@ -2,6 +2,7 @@
 namespace DreamFactory\Core\ADLdap\Services;
 
 use DreamFactory\Core\ADLdap\Models\RoleADLdap;
+use DreamFactory\Core\ADLdap\Resources\Computer;
 use DreamFactory\Core\ADLdap\Resources\Group;
 use DreamFactory\Core\ADLdap\Resources\User;
 use DreamFactory\Core\Exceptions\BadRequestException;
@@ -17,12 +18,17 @@ class ADLdap extends LDAP
 
     /** @type array Service Resources */
     protected $resources = [
-        Group::RESOURCE_NAME => [
+        Computer::RESOURCE_NAME => [
+            'name'       => Computer::RESOURCE_NAME,
+            'class_name' => Computer::class,
+            'label'      => 'Computer'
+        ],
+        Group::RESOURCE_NAME    => [
             'name'       => Group::RESOURCE_NAME,
             'class_name' => Group::class,
             'label'      => 'Group'
         ],
-        User::RESOURCE_NAME  => [
+        User::RESOURCE_NAME     => [
             'name'       => User::RESOURCE_NAME,
             'class_name' => User::class,
             'label'      => 'User'
