@@ -6,10 +6,8 @@ use DreamFactory\Core\ADLdap\Resources\Computer;
 use DreamFactory\Core\ADLdap\Resources\Group;
 use DreamFactory\Core\ADLdap\Resources\User;
 use DreamFactory\Core\Exceptions\BadRequestException;
-use DreamFactory\Library\Utility\ArrayUtils;
 use DreamFactory\Core\Exceptions\UnauthorizedException;
-use DreamFactory\Core\Exceptions\InternalServerErrorException;
-use DreamFactory\Core\Resources\BaseRestResource;
+use DreamFactory\Library\Utility\ArrayUtils;
 
 class ADLdap extends LDAP
 {
@@ -104,45 +102,5 @@ class ADLdap extends LDAP
         }
 
         return $this->defaultRole;
-    }
-
-    /**
-     * {@inheritdoc}
-     */
-    public function getApiDocInfo()
-    {
-        $base = parent::getApiDocInfo();
-
-        $apis = [];
-        $models = [];
-
-        foreach ($this->getResources(true) as $resourceInfo) {
-            $className = ArrayUtils::get($resourceInfo, 'class_name');
-
-            if (!class_exists($className)) {
-                throw new InternalServerErrorException('Service configuration class name lookup failed for resource ' .
-                    $this->resourcePath);
-            }
-
-            /** @var BaseRestResource $resource */
-            $resource = $this->instantiateResource($className, $resourceInfo);
-
-            $name = ArrayUtils::get($resourceInfo, 'name', '') . '/';
-            $access = $this->getPermissions($name);
-            if (!empty($access)) {
-                $results = $resource->getApiDocInfo();
-                if (isset($results, $results['apis'])) {
-                    $apis = array_merge($apis, $results['apis']);
-                }
-                if (isset($results, $results['models'])) {
-                    $models = array_merge($models, $results['models']);
-                }
-            }
-        }
-
-        $base['apis'] = array_merge($base['apis'], $apis);
-        $base['models'] = array_merge($base['models'], $models);
-
-        return $base;
     }
 }

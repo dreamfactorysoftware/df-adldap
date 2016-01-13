@@ -5,6 +5,7 @@ use DreamFactory\Core\Contracts\RequestHandlerInterface;
 use DreamFactory\Core\Utility\ResourcesWrapper;
 use DreamFactory\Core\Enums\ApiOptions;
 use DreamFactory\Core\ADLdap\Contracts\Provider;
+use DreamFactory\Library\Utility\ArrayUtils;
 
 class Group extends BaseADLdapResource
 {
@@ -62,32 +63,34 @@ class Group extends BaseADLdapResource
         return ResourcesWrapper::cleanResources($resources);
     }
 
-    /** @inheritdoc */
-    public function getApiDocInfo()
+    public static function getApiDocInfo(\DreamFactory\Core\Models\Service $service, array $resource = [])
     {
-        $base = parent::getApiDocInfo();
+        $base = parent::getApiDocInfo($service, $resource);
+        $serviceName = strtolower($service->name);
+        $class = trim(strrchr(static::class, '\\'), '\\');
+        $resourceName = strtolower(ArrayUtils::get($resource, 'name', $class));
+        $path = '/' . $serviceName . '/' . $resourceName;
 
-        $base['apis'][0]['operations'][0]['parameters'][] = [
-            'name'          => 'user',
-            'description'   => 'Accepts an username to list groups by username.',
-            'allowMultiple' => false,
-            'type'          => 'string',
-            'format'        => 'int32',
-            'paramType'     => 'query',
-            'required'      => false,
-            'default'       => null,
+        $base['paths'][$path]['get']['parameters'][] = [
+            'name'        => 'user',
+            'description' => 'Accepts an username to list groups by username.',
+            'type'        => 'string',
+            'format'      => 'int32',
+            'in'          => 'query',
+            'required'    => false,
         ];
 
-        $base['models']['GroupResponse']['properties'] = array_merge($base['models']['GroupResponse']['properties'], [
-            'member'      => [
-                'type'        => 'array',
-                'description' => 'Lists the member of the group.'
-            ],
-            'description' => [
-                'type'        => 'string',
-                'description' => 'Description of the group.'
-            ],
-        ]);
+        $base['definitions']['GroupResponse']['properties'] =
+            array_merge($base['definitions']['GroupResponse']['properties'], [
+                'member'      => [
+                    'type'        => 'array',
+                    'description' => 'Lists the member of the group.'
+                ],
+                'description' => [
+                    'type'        => 'string',
+                    'description' => 'Description of the group.'
+                ],
+            ]);
 
         return $base;
     }

@@ -56,12 +56,11 @@ class User extends BaseADLdapResource
         return ResourcesWrapper::cleanResources($resources);
     }
 
-    /** @inheritdoc */
-    public function getApiDocInfo()
+    public static function getApiDocInfo(\DreamFactory\Core\Models\Service $service, array $resource = [])
     {
-        $base = parent::getApiDocInfo();
+        $base = parent::getApiDocInfo($service, $resource);
 
-        $base['models']['UserResponse']['properties'] = array_merge($base['models']['UserResponse']['properties'], [
+        $base['definitions']['UserResponse']['properties'] = array_merge($base['definitions']['UserResponse']['properties'], [
             'sn'             => [
                 'type'        => 'string',
                 'description' => 'Surname of the user.'
