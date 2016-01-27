@@ -121,26 +121,29 @@ interface Provider
      * Lists all users.
      *
      * @param array $attributes
+     * @param mixed $filter
      *
      * @return mixed
      */
-    public function listUser(array $attributes = []);
+    public function listUser(array $attributes = [], $filter = null);
 
     /**
      * Lists all groups.
      *
      * @param array $attributes
+     * @param mixed $filter
      *
      * @return mixed
      */
-    public function listGroup(array $attributes = []);
+    public function listGroup(array $attributes = [], $filter = null);
 
     /**
      * Lists all computers.
      *
      * @param array $attributes
+     * @param mixed $filter
      *
      * @return mixed
      */
-    public function listComputer(array $attributes = []);
+    public function listComputer(array $attributes = [], $filter = null);
 }

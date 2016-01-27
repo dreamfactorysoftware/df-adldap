@@ -36,6 +36,7 @@ class User extends BaseADLdapResource
         $this->parent->authenticateAdminUser();
         $username = $this->resource;
         $fields = $this->request->getParameter(ApiOptions::FIELDS, ApiOptions::FIELDS_ALL);
+        $filter = $this->request->getParameter(ApiOptions::FILTER);
         $attributes = [];
 
         if ('*' !== $fields) {
@@ -47,7 +48,7 @@ class User extends BaseADLdapResource
             if ($asList) {
                 $attributes = ['samaccountname'];
             }
-            $resources = $this->provider->listUser($attributes);
+            $resources = $this->provider->listUser($attributes, $filter);
         } else {
             $user = $this->provider->getUserByUserName($username);
             $resources = $user->getData($attributes);
@@ -60,28 +61,29 @@ class User extends BaseADLdapResource
     {
         $base = parent::getApiDocInfo($service, $resource);
 
-        $base['definitions']['UserResponse']['properties'] = array_merge($base['definitions']['UserResponse']['properties'], [
-            'sn'             => [
-                'type'        => 'string',
-                'description' => 'Surname of the user.'
-            ],
-            'givenname'      => [
-                'type'        => 'string',
-                'description' => 'First name of the user.'
-            ],
-            'memberof'       => [
-                'type'        => 'array',
-                'description' => 'Lists the groups (dn) this user is a member of.'
-            ],
-            'name'           => [
-                'type'        => 'string',
-                'description' => 'Full name of the user.'
-            ],
-            'samaccountname' => [
-                'type'        => 'string',
-                'description' => 'User login name.'
-            ]
-        ]);
+        $base['definitions']['UserResponse']['properties'] =
+            array_merge($base['definitions']['UserResponse']['properties'], [
+                'sn'             => [
+                    'type'        => 'string',
+                    'description' => 'Surname of the user.'
+                ],
+                'givenname'      => [
+                    'type'        => 'string',
+                    'description' => 'First name of the user.'
+                ],
+                'memberof'       => [
+                    'type'        => 'array',
+                    'description' => 'Lists the groups (dn) this user is a member of.'
+                ],
+                'name'           => [
+                    'type'        => 'string',
+                    'description' => 'Full name of the user.'
+                ],
+                'samaccountname' => [
+                    'type'        => 'string',
+                    'description' => 'User login name.'
+                ]
+            ]);
 
         return $base;
     }

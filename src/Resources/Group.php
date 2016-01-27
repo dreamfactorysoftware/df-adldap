@@ -37,6 +37,7 @@ class Group extends BaseADLdapResource
         $groupName = $this->resource;
         $username = $this->request->getParameter('user');
         $fields = $this->request->getParameter(ApiOptions::FIELDS, ApiOptions::FIELDS_ALL);
+        $filter = $this->request->getParameter(ApiOptions::FILTER);
         $attributes = [];
 
         if ('*' !== $fields) {
@@ -54,7 +55,7 @@ class Group extends BaseADLdapResource
             if ($asList) {
                 $attributes = ['samaccountname'];
             }
-            $resources = $this->provider->listGroup($attributes);
+            $resources = $this->provider->listGroup($attributes, $filter);
         } else {
             $adGroup = $this->provider->getGroupByCn($groupName);
             $resources = $adGroup->getData($attributes);

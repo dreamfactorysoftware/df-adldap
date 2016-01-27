@@ -35,6 +35,7 @@ class Computer extends BaseADLdapResource
         $this->parent->authenticateAdminUser();
         $computerName = $this->resource;
         $fields = $this->request->getParameter(ApiOptions::FIELDS, ApiOptions::FIELDS_ALL);
+        $filter = $this->request->getParameter(ApiOptions::FILTER);
         $attributes = [];
 
         if ('*' !== $fields) {
@@ -46,7 +47,7 @@ class Computer extends BaseADLdapResource
             if ($asList) {
                 $attributes = ['cn'];
             }
-            $resources = $this->provider->listComputer($attributes);
+            $resources = $this->provider->listComputer($attributes, $filter);
         } else {
             $computer = $this->provider->getComputerByCn($computerName);
             $resources = $computer->getData($attributes);

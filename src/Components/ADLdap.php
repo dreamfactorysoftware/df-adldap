@@ -60,8 +60,6 @@ class ADLdap extends OpenLdap
                 $this->userDn = $this->getUserDn($username, 'samaccountname');
 
                 $auth = ldap_bind($this->connection, $this->userDn, $password);
-
-                \Log::debug('[AD debug] Auth success! User DN: '.$this->userDn);
             } else {
                 $auth = false;
             }
@@ -79,7 +77,7 @@ class ADLdap extends OpenLdap
     public function getUser()
     {
         $user = new ADUser($this->getUserInfo());
-        \Log::debug('[AD debug] Fetching AD user: '.print_r($user->getData(['samaccountname', 'cn']), true));
+
         return $user;
     }
 
@@ -133,11 +131,11 @@ class ADLdap extends OpenLdap
     }
 
     /** @inheritdoc */
-    public function listUser(array $attributes = [])
+    public function listUser(array $attributes = [], $filter = null)
     {
         $result = [];
         $users = $this->search(
-            "(&(objectCategory=person)(objectClass=user)(samaccountname=*))",
+            "(&(objectCategory=person)(objectClass=user)(samaccountname=*)$filter)",
             $attributes
         );
 
@@ -187,11 +185,14 @@ class ADLdap extends OpenLdap
     }
 
     /** @inheritdoc */
-    public function listGroup(array $attributes = [])
+    public function listGroup(array $attributes = [], $filter = null)
     {
         $result = [];
+        if (!empty($filter) && substr($filter, 0, 1) != '(') {
+            $filter = '(' . $filter . ')';
+        }
         $groups = $this->search(
-            "(&(objectCategory=group)(objectClass=group))",
+            "(&(objectCategory=group)(objectClass=group)$filter)",
             $attributes
         );
 
@@ -223,11 +224,11 @@ class ADLdap extends OpenLdap
     }
 
     /** @inheritdoc */
-    public function listComputer(array $attributes = [])
+    public function listComputer(array $attributes = [], $filter = null)
     {
         $result = [];
         $computers = $this->search(
-            "(&(objectCategory=computer)(objectClass=computer))",
+            "(&(objectCategory=computer)(objectClass=computer)$filter)",
             $attributes
         );
 

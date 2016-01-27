@@ -43,6 +43,7 @@ class ADLdap extends LDAP
         $accountSuffix = ArrayUtils::get($this->config, 'account_suffix');
 
         $this->driver = new \DreamFactory\Core\ADLdap\Components\ADLdap($host, $baseDn, $accountSuffix);
+        $this->driver->setPageSize(ArrayUtils::get($this->config, 'max_page_size', 1000));
     }
 
     /**
