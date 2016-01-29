@@ -4,10 +4,14 @@ This project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [Unreleased]
 ### Added
+- Added filtering on all resources.
+- Added --filter option to dreamfactory:ad-group-import utility.
 
 ### Changed
+- Changed swagger definition to work with Swagger 2.0
 
 ### Fixed
+- Fixed issue with exceeding MaxPageSize by utilizing pagination.
 
 ## [0.1.2] - 2015-12-19
 ### Added
