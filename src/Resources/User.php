@@ -5,6 +5,7 @@ use DreamFactory\Core\Enums\ApiOptions;
 use DreamFactory\Core\ADLdap\Contracts\Provider;
 use DreamFactory\Core\Contracts\RequestHandlerInterface;
 use DreamFactory\Core\Utility\ResourcesWrapper;
+use DreamFactory\Core\Models\Service;
 
 class User extends BaseADLdapResource
 {
@@ -57,7 +58,7 @@ class User extends BaseADLdapResource
         return ResourcesWrapper::cleanResources($resources);
     }
 
-    public static function getApiDocInfo(\DreamFactory\Core\Models\Service $service, array $resource = [])
+    public static function getApiDocInfo(Service $service, array $resource = [])
     {
         $base = parent::getApiDocInfo($service, $resource);
 
@@ -73,7 +74,10 @@ class User extends BaseADLdapResource
                 ],
                 'memberof'       => [
                     'type'        => 'array',
-                    'description' => 'Lists the groups (dn) this user is a member of.'
+                    'description' => 'Lists the groups (dn) this user is a member of.',
+                    'items'       => [
+                        'type' => 'string'
+                    ]
                 ],
                 'name'           => [
                     'type'        => 'string',

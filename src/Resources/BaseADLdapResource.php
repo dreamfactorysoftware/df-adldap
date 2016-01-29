@@ -7,6 +7,7 @@ use DreamFactory\Library\Utility\ArrayUtils;
 use DreamFactory\Library\Utility\Inflector;
 use DreamFactory\Core\Utility\ResourcesWrapper;
 use DreamFactory\Core\Enums\ApiOptions;
+use DreamFactory\Core\Models\Service;
 
 class BaseADLdapResource extends BaseRestResource
 {
@@ -21,7 +22,7 @@ class BaseADLdapResource extends BaseRestResource
         return static::RESOURCE_IDENTIFIER;
     }
 
-    public static function getApiDocInfo(\DreamFactory\Core\Models\Service $service, array $resource = [])
+    public static function getApiDocInfo(Service $service, array $resource = [])
     {
         $serviceName = strtolower($service->name);
         $capitalized = Inflector::camelize($service->name);
@@ -33,16 +34,27 @@ class BaseADLdapResource extends BaseRestResource
         $wrapper = ResourcesWrapper::getWrapper();
 
         $apis = [
-            $path                                       => [
+            $path                                        => [
                 'get' => [
                     'tags'        => [$serviceName],
-                    'summary'     => 'get' . $capitalized.$pluralClass . '() - Retrieve one or more ' . $pluralClass . '.',
-                    'operationId' => 'get' . $capitalized.$pluralClass,
+                    'summary'     => 'get' .
+                        $capitalized .
+                        $pluralClass .
+                        '() - Retrieve one or more ' .
+                        $pluralClass .
+                        '.',
+                    'operationId' => 'get' . $capitalized . $pluralClass,
                     'event_name'  => [$eventPath . '.list'],
                     'consumes'    => ['application/json', 'application/xml', 'text/csv'],
                     'produces'    => ['application/json', 'application/xml', 'text/csv'],
                     'parameters'  => [
                         ApiOptions::documentOption(ApiOptions::FIELDS),
+                        [
+                            'name'        => ApiOptions::FILTER,
+                            'type'        => 'string',
+                            'in'          => 'query',
+                            'description' => 'LDAP Query like filter to limit the records to retrieve.'
+                        ],
                     ],
                     'responses'   => [
                         '200'     => [
@@ -60,12 +72,12 @@ class BaseADLdapResource extends BaseRestResource
             $path . '/{' . strtolower($class) . '_name}' => [
                 'get' => [
                     'tags'        => [$serviceName],
-                    'summary'     => 'get' . $capitalized.$class . '() - Retrieve one ' . $class . '.',
-                    'operationId' => 'get' . $capitalized.$class,
+                    'summary'     => 'get' . $capitalized . $class . '() - Retrieve one ' . $class . '.',
+                    'operationId' => 'get' . $capitalized . $class,
                     'event_name'  => $eventPath . '.read',
                     'parameters'  => [
                         [
-                            'name'        => strtolower($class) . 'name',
+                            'name'        => strtolower($class) . '_name',
                             'description' => 'Identifier of the record to retrieve.',
                             'type'        => 'string',
                             'in'          => 'path',
@@ -89,24 +101,15 @@ class BaseADLdapResource extends BaseRestResource
         ];
 
         $models = [
-            $pluralClass . 'Response' => [
-                'type'       => 'object',
-                'properties' => [
-                    $wrapper => [
-                        'type'        => 'array',
-                        'description' => 'Array of records.',
-                        'items'       => [
-                            '$ref' => '#/definitions/' . $class . 'Response',
-                        ],
-                    ]
-                ],
-            ],
-            $class . 'Response'   => [
+            $class . 'Response'       => [
                 'type'       => 'object',
                 'properties' => [
                     'objectclass'       => [
                         'type'        => 'array',
                         'description' => 'This property identifies the class of which the object is an instance, as well as all structural or abstract superclasses from which that class is derived.',
+                        'items'       => [
+                            'type' => 'string'
+                        ]
                     ],
                     'cn'                => [
                         'type'        => 'string',
@@ -131,6 +134,18 @@ class BaseADLdapResource extends BaseRestResource
                     'objectcategory'    => [
                         'type'        => 'string',
                         'description' => 'Shows objectCagetory attribute.'
+                    ]
+                ],
+            ],
+            $pluralClass . 'Response' => [
+                'type'       => 'object',
+                'properties' => [
+                    $wrapper => [
+                        'type'        => 'array',
+                        'description' => 'Array of records.',
+                        'items'       => [
+                            '$ref' => '#/definitions/' . $class . 'Response',
+                        ],
                     ]
                 ],
             ],

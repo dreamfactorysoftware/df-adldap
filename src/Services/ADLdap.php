@@ -8,6 +8,9 @@ use DreamFactory\Core\ADLdap\Resources\User;
 use DreamFactory\Core\Exceptions\BadRequestException;
 use DreamFactory\Core\Exceptions\UnauthorizedException;
 use DreamFactory\Library\Utility\ArrayUtils;
+use DreamFactory\Core\Models\Service;
+use DreamFactory\Core\Exceptions\InternalServerErrorException;
+use DreamFactory\Core\Utility\Session;
 
 class ADLdap extends LDAP
 {
@@ -15,7 +18,7 @@ class ADLdap extends LDAP
     const PROVIDER_NAME = 'adldap';
 
     /** @type array Service Resources */
-    protected $resources = [
+    protected static $resources = [
         Computer::RESOURCE_NAME => [
             'name'       => Computer::RESOURCE_NAME,
             'class_name' => Computer::class,
@@ -103,5 +106,37 @@ class ADLdap extends LDAP
         }
 
         return $this->defaultRole;
+    }
+
+    public static function getApiDocInfo(Service $service)
+    {
+        $base = parent::getApiDocInfo($service);
+
+        $apis = [];
+        $models = [];
+        foreach (static::$resources as $resourceInfo) {
+            $resourceClass = ArrayUtils::get($resourceInfo, 'class_name');
+
+            if (!class_exists($resourceClass)) {
+                throw new InternalServerErrorException('Service configuration class name lookup failed for resource ' .
+                    $resourceClass);
+            }
+
+            $resourceName = ArrayUtils::get($resourceInfo, static::RESOURCE_IDENTIFIER);
+            if (Session::checkForAnyServicePermissions($service->name, $resourceName)) {
+                $results = $resourceClass::getApiDocInfo($service, $resourceInfo);
+                if (isset($results, $results['paths'])) {
+                    $apis = array_merge($apis, $results['paths']);
+                }
+                if (isset($results, $results['definitions'])) {
+                    $models = array_merge($models, $results['definitions']);
+                }
+            }
+        }
+
+        $base['paths'] = array_merge($base['paths'], $apis);
+        $base['definitions'] = array_merge($base['definitions'], $models);
+
+        return $base;
     }
 }
