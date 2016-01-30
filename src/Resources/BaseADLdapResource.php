@@ -3,10 +3,11 @@
 namespace DreamFactory\Core\ADLdap\Resources;
 
 use DreamFactory\Core\Resources\BaseRestResource;
+use DreamFactory\Library\Utility\ArrayUtils;
 use DreamFactory\Library\Utility\Inflector;
 use DreamFactory\Core\Utility\ResourcesWrapper;
 use DreamFactory\Core\Enums\ApiOptions;
-use DreamFactory\Core\Utility\ApiDocUtilities;
+use DreamFactory\Core\Models\Service;
 
 class BaseADLdapResource extends BaseRestResource
 {
@@ -16,89 +17,99 @@ class BaseADLdapResource extends BaseRestResource
     /**
      * {@inheritdoc}
      */
-    protected function getResourceIdentifier()
+    protected static function getResourceIdentifier()
     {
         return static::RESOURCE_IDENTIFIER;
     }
 
-    public function getApiDocInfo()
+    public static function getApiDocInfo(Service $service, array $resource = [])
     {
-        $path = '/' . $this->getServiceName() . '/' . $this->getFullPathName();
-        $eventPath = $this->getServiceName() . '.' . $this->getFullPathName('.');
-        $name = Inflector::camelize($this->name);
-        $plural = Inflector::pluralize($name);
-        $words = str_replace('_', ' ', $this->name);
-        $pluralWords = Inflector::pluralize($words);
+        $serviceName = strtolower($service->name);
+        $capitalized = Inflector::camelize($service->name);
+        $class = trim(strrchr(static::class, '\\'), '\\');
+        $resourceName = strtolower(ArrayUtils::get($resource, 'name', $class));
+        $pluralClass = Inflector::pluralize($class);
+        $path = '/' . $serviceName . '/' . $resourceName;
+        $eventPath = $serviceName . '.' . $resourceName;
         $wrapper = ResourcesWrapper::getWrapper();
 
         $apis = [
-            [
-                'path'        => $path,
-                'description' => "Operations for $words administration.",
-                'operations'  => [
-                    [
-                        'method'           => 'GET',
-                        'summary'          => 'get' . $plural . '() - Retrieve one or more ' . $pluralWords . '.',
-                        'nickname'         => 'get' . $plural,
-                        'type'             => $plural . 'Response',
-                        'event_name'       => [$eventPath . '.list'],
-                        'consumes'         => ['application/json', 'application/xml', 'text/csv'],
-                        'produces'         => ['application/json', 'application/xml', 'text/csv'],
-                        'parameters'       => [
-                            ApiOptions::documentOption(ApiOptions::FIELDS),
+            $path                                        => [
+                'get' => [
+                    'tags'        => [$serviceName],
+                    'summary'     => 'get' .
+                        $capitalized .
+                        $pluralClass .
+                        '() - Retrieve one or more ' .
+                        $pluralClass .
+                        '.',
+                    'operationId' => 'get' . $capitalized . $pluralClass,
+                    'event_name'  => [$eventPath . '.list'],
+                    'consumes'    => ['application/json', 'application/xml', 'text/csv'],
+                    'produces'    => ['application/json', 'application/xml', 'text/csv'],
+                    'parameters'  => [
+                        ApiOptions::documentOption(ApiOptions::FIELDS),
+                        [
+                            'name'        => ApiOptions::FILTER,
+                            'type'        => 'string',
+                            'in'          => 'query',
+                            'description' => 'LDAP Query like filter to limit the records to retrieve.'
                         ],
-                        'responseMessages' => ApiDocUtilities::getCommonResponses([400, 401, 500]),
-                        'notes'            => 'List Active Directory ' . strtolower($pluralWords)
                     ],
+                    'responses'   => [
+                        '200'     => [
+                            'description' => 'Response',
+                            'schema'      => ['$ref' => '#/definitions/' . $pluralClass . 'Response']
+                        ],
+                        'default' => [
+                            'description' => 'Error',
+                            'schema'      => ['$ref' => '#/definitions/Error']
+                        ]
+                    ],
+                    'description' => 'List Active Directory ' . strtolower($pluralClass)
                 ],
             ],
-            [
-                'path'        => $path . '/{' . strtolower($name) . '_name}',
-                'operations'  => [
-                    [
-                        'method'           => 'GET',
-                        'summary'          => 'get' . $name . '() - Retrieve one ' . $words . '.',
-                        'nickname'         => 'get' . $name,
-                        'type'             => $name . 'Response',
-                        'event_name'       => $eventPath . '.read',
-                        'parameters'       => [
-                            [
-                                'name'          => strtolower($name) . '_name',
-                                'description'   => 'Identifier of the record to retrieve.',
-                                'allowMultiple' => false,
-                                'type'          => 'string',
-                                'paramType'     => 'path',
-                                'required'      => true,
-                            ],
-                            ApiOptions::documentOption(ApiOptions::FIELDS),
+            $path . '/{' . strtolower($class) . '_name}' => [
+                'get' => [
+                    'tags'        => [$serviceName],
+                    'summary'     => 'get' . $capitalized . $class . '() - Retrieve one ' . $class . '.',
+                    'operationId' => 'get' . $capitalized . $class,
+                    'event_name'  => $eventPath . '.read',
+                    'parameters'  => [
+                        [
+                            'name'        => strtolower($class) . '_name',
+                            'description' => 'Identifier of the record to retrieve.',
+                            'type'        => 'string',
+                            'in'          => 'path',
+                            'required'    => true,
                         ],
-                        'responseMessages' => ApiDocUtilities::getCommonResponses([400, 401, 500]),
-                        'notes'            => 'Use the \'fields\' parameter to limit properties that are returned. By default, all fields are returned.',
+                        ApiOptions::documentOption(ApiOptions::FIELDS),
                     ],
+                    'responses'   => [
+                        '200'     => [
+                            'description' => 'AD/LDAP Response',
+                            'schema'      => ['$ref' => '#/definitions/' . $class . 'Response']
+                        ],
+                        'default' => [
+                            'description' => 'Error',
+                            'schema'      => ['$ref' => '#/definitions/Error']
+                        ]
+                    ],
+                    'description' => 'Use the \'fields\' parameter to limit properties that are returned. By default, all fields are returned.',
                 ],
-                'description' => "Operations for individual $words administration.",
             ],
         ];
 
         $models = [
-            $plural . 'Response' => [
-                'id'         => $plural . 'Response',
-                'properties' => [
-                    $wrapper => [
-                        'type'        => 'array',
-                        'description' => 'Array of records.',
-                        'items'       => [
-                            '$ref' => $name . 'Response',
-                        ],
-                    ]
-                ],
-            ],
-            $name . 'Response'   => [
-                'id'         => $name . 'Response',
+            $class . 'Response'       => [
+                'type'       => 'object',
                 'properties' => [
                     'objectclass'       => [
                         'type'        => 'array',
                         'description' => 'This property identifies the class of which the object is an instance, as well as all structural or abstract superclasses from which that class is derived.',
+                        'items'       => [
+                            'type' => 'string'
+                        ]
                     ],
                     'cn'                => [
                         'type'        => 'string',
@@ -126,8 +137,20 @@ class BaseADLdapResource extends BaseRestResource
                     ]
                 ],
             ],
+            $pluralClass . 'Response' => [
+                'type'       => 'object',
+                'properties' => [
+                    $wrapper => [
+                        'type'        => 'array',
+                        'description' => 'Array of records.',
+                        'items'       => [
+                            '$ref' => '#/definitions/' . $class . 'Response',
+                        ],
+                    ]
+                ],
+            ],
         ];
 
-        return ['apis' => $apis, 'models' => $models];
+        return ['paths' => $apis, 'definitions' => $models];
     }
 }

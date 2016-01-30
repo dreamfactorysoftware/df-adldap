@@ -24,6 +24,9 @@ class OpenLdap implements Provider
     /** @var bool */
     protected $authenticated = false;
 
+    /** @type int Number of records returned per page */
+    protected $pageSize = 1000;
+
     /**
      * @param $host
      * @param $baseDn
@@ -36,6 +39,14 @@ class OpenLdap implements Provider
 
         $this->connection = $connection;
         $this->baseDn = $baseDn;
+    }
+
+    /**
+     * @param int $size
+     */
+    public function setPageSize($size)
+    {
+        $this->pageSize = $size;
     }
 
     /**
@@ -210,10 +221,23 @@ class OpenLdap implements Provider
         $baseDn = $this->baseDn;
         $connection = $this->connection;
 
-        $search = ldap_search($connection, $baseDn, $filter, $attributes);
-        $result = ldap_get_entries($connection, $search);
+        $cookie = '';
+        $out = ['count' => 0];
 
-        return $result;
+        do {
+            ldap_control_paged_result($connection, $this->pageSize, true, $cookie);
+
+            $search = ldap_search($connection, $baseDn, $filter, $attributes);
+            $result = ldap_get_entries($connection, $search);
+
+            $out['count'] += $result['count'];
+            array_shift($result);
+            $out = array_merge($out, $result);
+
+            ldap_control_paged_result_response($connection, $search, $cookie);
+        } while ($cookie !== null && $cookie != '');
+
+        return $out;
     }
 
     /** @inheritdoc */
@@ -228,19 +252,19 @@ class OpenLdap implements Provider
     }
 
     /** @inheritdoc */
-    public function listUser(array $attributes = [])
+    public function listUser(array $attributes = [], $filter = null)
     {
         // TODO: Implement listUser() method.
     }
 
     /** @inheritdoc */
-    public function listGroup(array $attributes = [])
+    public function listGroup(array $attributes = [], $filter = null)
     {
         // TODO: Implement listGroup() method.
     }
 
     /** @inheritdoc */
-    public function listComputer(array $attributes = [])
+    public function listComputer(array $attributes = [], $filter = null)
     {
         // TODO: Implement listComputer() method.
     }

@@ -30,12 +30,12 @@ class LDAP extends BaseRestService
     protected $driver;
 
     /** @type array Service Resources */
-    protected $resources = [];
+    protected static $resources = [];
 
     /** @inheritdoc */
     public function getResources($only_handlers = false)
     {
-        return ($only_handlers) ? $this->resources : array_values($this->resources);
+        return ($only_handlers) ? static::$resources : array_values(static::$resources);
     }
 
     /**
@@ -66,6 +66,7 @@ class LDAP extends BaseRestService
         $baseDn = $this->getBaseDn();
 
         $this->driver = new OpenLdap($host, $baseDn);
+        $this->driver->setPageSize(ArrayUtils::get($this->config, 'max_page_size', 1000));
     }
 
     /**

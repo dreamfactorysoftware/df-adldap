@@ -6,10 +6,11 @@ use DreamFactory\Core\ADLdap\Resources\Computer;
 use DreamFactory\Core\ADLdap\Resources\Group;
 use DreamFactory\Core\ADLdap\Resources\User;
 use DreamFactory\Core\Exceptions\BadRequestException;
-use DreamFactory\Library\Utility\ArrayUtils;
 use DreamFactory\Core\Exceptions\UnauthorizedException;
+use DreamFactory\Library\Utility\ArrayUtils;
+use DreamFactory\Core\Models\Service;
 use DreamFactory\Core\Exceptions\InternalServerErrorException;
-use DreamFactory\Core\Resources\BaseRestResource;
+use DreamFactory\Core\Utility\Session;
 
 class ADLdap extends LDAP
 {
@@ -17,7 +18,7 @@ class ADLdap extends LDAP
     const PROVIDER_NAME = 'adldap';
 
     /** @type array Service Resources */
-    protected $resources = [
+    protected static $resources = [
         Computer::RESOURCE_NAME => [
             'name'       => Computer::RESOURCE_NAME,
             'class_name' => Computer::class,
@@ -45,6 +46,7 @@ class ADLdap extends LDAP
         $accountSuffix = ArrayUtils::get($this->config, 'account_suffix');
 
         $this->driver = new \DreamFactory\Core\ADLdap\Components\ADLdap($host, $baseDn, $accountSuffix);
+        $this->driver->setPageSize(ArrayUtils::get($this->config, 'max_page_size', 1000));
     }
 
     /**
@@ -106,42 +108,34 @@ class ADLdap extends LDAP
         return $this->defaultRole;
     }
 
-    /**
-     * {@inheritdoc}
-     */
-    public function getApiDocInfo()
+    public static function getApiDocInfo(Service $service)
     {
-        $base = parent::getApiDocInfo();
+        $base = parent::getApiDocInfo($service);
 
         $apis = [];
         $models = [];
+        foreach (static::$resources as $resourceInfo) {
+            $resourceClass = ArrayUtils::get($resourceInfo, 'class_name');
 
-        foreach ($this->getResources(true) as $resourceInfo) {
-            $className = ArrayUtils::get($resourceInfo, 'class_name');
-
-            if (!class_exists($className)) {
+            if (!class_exists($resourceClass)) {
                 throw new InternalServerErrorException('Service configuration class name lookup failed for resource ' .
-                    $this->resourcePath);
+                    $resourceClass);
             }
 
-            /** @var BaseRestResource $resource */
-            $resource = $this->instantiateResource($className, $resourceInfo);
-
-            $name = ArrayUtils::get($resourceInfo, 'name', '') . '/';
-            $access = $this->getPermissions($name);
-            if (!empty($access)) {
-                $results = $resource->getApiDocInfo();
-                if (isset($results, $results['apis'])) {
-                    $apis = array_merge($apis, $results['apis']);
+            $resourceName = ArrayUtils::get($resourceInfo, static::RESOURCE_IDENTIFIER);
+            if (Session::checkForAnyServicePermissions($service->name, $resourceName)) {
+                $results = $resourceClass::getApiDocInfo($service, $resourceInfo);
+                if (isset($results, $results['paths'])) {
+                    $apis = array_merge($apis, $results['paths']);
                 }
-                if (isset($results, $results['models'])) {
-                    $models = array_merge($models, $results['models']);
+                if (isset($results, $results['definitions'])) {
+                    $models = array_merge($models, $results['definitions']);
                 }
             }
         }
 
-        $base['apis'] = array_merge($base['apis'], $apis);
-        $base['models'] = array_merge($base['models'], $models);
+        $base['paths'] = array_merge($base['paths'], $apis);
+        $base['definitions'] = array_merge($base['definitions'], $models);
 
         return $base;
     }

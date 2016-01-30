@@ -4,6 +4,7 @@ namespace DreamFactory\Core\ADLdap\Resources;
 use DreamFactory\Core\Contracts\RequestHandlerInterface;
 use DreamFactory\Core\Enums\ApiOptions;
 use DreamFactory\Core\Utility\ResourcesWrapper;
+use DreamFactory\Core\Models\Service;
 
 class Computer extends BaseADLdapResource
 {
@@ -35,6 +36,7 @@ class Computer extends BaseADLdapResource
         $this->parent->authenticateAdminUser();
         $computerName = $this->resource;
         $fields = $this->request->getParameter(ApiOptions::FIELDS, ApiOptions::FIELDS_ALL);
+        $filter = $this->request->getParameter(ApiOptions::FILTER);
         $attributes = [];
 
         if ('*' !== $fields) {
@@ -46,7 +48,7 @@ class Computer extends BaseADLdapResource
             if ($asList) {
                 $attributes = ['cn'];
             }
-            $resources = $this->provider->listComputer($attributes);
+            $resources = $this->provider->listComputer($attributes, $filter);
         } else {
             $computer = $this->provider->getComputerByCn($computerName);
             $resources = $computer->getData($attributes);
@@ -55,13 +57,12 @@ class Computer extends BaseADLdapResource
         return ResourcesWrapper::cleanResources($resources);
     }
 
-    /** @inheritdoc */
-    public function getApiDocInfo()
+    public static function getApiDocInfo(Service $service, array $resource = [])
     {
-        $base = parent::getApiDocInfo();
+        $base = parent::getApiDocInfo($service, $resource);
 
-        $base['models']['ComputerResponse']['properties'] =
-            array_merge($base['models']['ComputerResponse']['properties'], [
+        $base['definitions']['ComputerResponse']['properties'] =
+            array_merge($base['definitions']['ComputerResponse']['properties'], [
                 'name'                       => [
                     'type'        => 'string',
                     'description' => 'Computer name'
