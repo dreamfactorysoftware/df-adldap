@@ -36,18 +36,18 @@ class BaseADLdapResource extends BaseRestResource
         $apis = [
             $path                                        => [
                 'get' => [
-                    'tags'        => [$serviceName],
-                    'summary'     => 'get' .
+                    'tags'              => [$serviceName],
+                    'summary'           => 'get' .
                         $capitalized .
                         $pluralClass .
                         '() - Retrieve one or more ' .
                         $pluralClass .
                         '.',
-                    'operationId' => 'get' . $capitalized . $pluralClass,
-                    'event_name'  => [$eventPath . '.list'],
-                    'consumes'    => ['application/json', 'application/xml', 'text/csv'],
-                    'produces'    => ['application/json', 'application/xml', 'text/csv'],
-                    'parameters'  => [
+                    'operationId'       => 'get' . $capitalized . $pluralClass,
+                    'x-publishedEvents' => [$eventPath . '.list'],
+                    'consumes'          => ['application/json', 'application/xml', 'text/csv'],
+                    'produces'          => ['application/json', 'application/xml', 'text/csv'],
+                    'parameters'        => [
                         ApiOptions::documentOption(ApiOptions::FIELDS),
                         [
                             'name'        => ApiOptions::FILTER,
@@ -56,7 +56,7 @@ class BaseADLdapResource extends BaseRestResource
                             'description' => 'LDAP Query like filter to limit the records to retrieve.'
                         ],
                     ],
-                    'responses'   => [
+                    'responses'         => [
                         '200'     => [
                             'description' => 'Response',
                             'schema'      => ['$ref' => '#/definitions/' . $pluralClass . 'Response']
@@ -66,16 +66,16 @@ class BaseADLdapResource extends BaseRestResource
                             'schema'      => ['$ref' => '#/definitions/Error']
                         ]
                     ],
-                    'description' => 'List Active Directory ' . strtolower($pluralClass)
+                    'description'       => 'List Active Directory ' . strtolower($pluralClass)
                 ],
             ],
             $path . '/{' . strtolower($class) . '_name}' => [
                 'get' => [
-                    'tags'        => [$serviceName],
-                    'summary'     => 'get' . $capitalized . $class . '() - Retrieve one ' . $class . '.',
-                    'operationId' => 'get' . $capitalized . $class,
-                    'event_name'  => $eventPath . '.read',
-                    'parameters'  => [
+                    'tags'              => [$serviceName],
+                    'summary'           => 'get' . $capitalized . $class . '() - Retrieve one ' . $class . '.',
+                    'operationId'       => 'get' . $capitalized . $class,
+                    'x-publishedEvents' => [$eventPath . '.read'],
+                    'parameters'        => [
                         [
                             'name'        => strtolower($class) . '_name',
                             'description' => 'Identifier of the record to retrieve.',
@@ -85,7 +85,7 @@ class BaseADLdapResource extends BaseRestResource
                         ],
                         ApiOptions::documentOption(ApiOptions::FIELDS),
                     ],
-                    'responses'   => [
+                    'responses'         => [
                         '200'     => [
                             'description' => 'AD/LDAP Response',
                             'schema'      => ['$ref' => '#/definitions/' . $class . 'Response']
@@ -95,7 +95,7 @@ class BaseADLdapResource extends BaseRestResource
                             'schema'      => ['$ref' => '#/definitions/Error']
                         ]
                     ],
-                    'description' => 'Use the \'fields\' parameter to limit properties that are returned. By default, all fields are returned.',
+                    'description'       => 'Use the \'fields\' parameter to limit properties that are returned. By default, all fields are returned.',
                 ],
             ],
         ];
