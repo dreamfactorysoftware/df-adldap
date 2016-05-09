@@ -108,9 +108,9 @@ class ADLdap extends LDAP
         return $this->defaultRole;
     }
 
-    public static function getApiDocInfo(Service $service)
+    public function getApiDocInfo()
     {
-        $base = parent::getApiDocInfo($service);
+        $base = parent::getApiDocInfo();
 
         $apis = [];
         $models = [];
@@ -123,8 +123,8 @@ class ADLdap extends LDAP
             }
 
             $resourceName = ArrayUtils::get($resourceInfo, static::RESOURCE_IDENTIFIER);
-            if (Session::checkForAnyServicePermissions($service->name, $resourceName)) {
-                $results = $resourceClass::getApiDocInfo($service, $resourceInfo);
+            if (Session::checkForAnyServicePermissions($this->name, $resourceName)) {
+                $results = $resourceClass::getApiDocInfo($this->name, $resourceInfo);
                 if (isset($results, $results['paths'])) {
                     $apis = array_merge($apis, $results['paths']);
                 }
