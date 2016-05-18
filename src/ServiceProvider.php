@@ -20,7 +20,7 @@ class ServiceProvider extends \Illuminate\Support\ServiceProvider
             $df->addType(
                 new ServiceType([
                     'name'           => 'adldap',
-                    'label'          => 'Active Directory LDAP',
+                    'label'          => 'Active Directory',
                     'description'    => 'A service for supporting Active Directory integration',
                     'group'          => ServiceTypeGroups::LDAP,
                     'config_handler' => ADConfig::class,
