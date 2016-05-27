@@ -1,11 +1,10 @@
 <?php
 namespace DreamFactory\Core\ADLdap\Resources;
 
-use DreamFactory\Core\Enums\ApiOptions;
 use DreamFactory\Core\ADLdap\Contracts\Provider;
 use DreamFactory\Core\Contracts\RequestHandlerInterface;
+use DreamFactory\Core\Enums\ApiOptions;
 use DreamFactory\Core\Utility\ResourcesWrapper;
-use DreamFactory\Core\Models\Service;
 
 class User extends BaseADLdapResource
 {
@@ -58,7 +57,7 @@ class User extends BaseADLdapResource
         return ResourcesWrapper::cleanResources($resources);
     }
 
-    public static function getApiDocInfo(Service $service, array $resource = [])
+    public static function getApiDocInfo($service, array $resource = [])
     {
         $base = parent::getApiDocInfo($service, $resource);
 

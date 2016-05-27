@@ -2,12 +2,11 @@
 
 namespace DreamFactory\Core\ADLdap\Resources;
 
+use DreamFactory\Core\Enums\ApiOptions;
 use DreamFactory\Core\Resources\BaseRestResource;
+use DreamFactory\Core\Utility\ResourcesWrapper;
 use DreamFactory\Library\Utility\ArrayUtils;
 use DreamFactory\Library\Utility\Inflector;
-use DreamFactory\Core\Utility\ResourcesWrapper;
-use DreamFactory\Core\Enums\ApiOptions;
-use DreamFactory\Core\Models\Service;
 
 class BaseADLdapResource extends BaseRestResource
 {
@@ -22,10 +21,10 @@ class BaseADLdapResource extends BaseRestResource
         return static::RESOURCE_IDENTIFIER;
     }
 
-    public static function getApiDocInfo(Service $service, array $resource = [])
+    public static function getApiDocInfo($service, array $resource = [])
     {
-        $serviceName = strtolower($service->name);
-        $capitalized = Inflector::camelize($service->name);
+        $serviceName = strtolower($service);
+        $capitalized = Inflector::camelize($service);
         $class = trim(strrchr(static::class, '\\'), '\\');
         $resourceName = strtolower(ArrayUtils::get($resource, 'name', $class));
         $pluralClass = Inflector::pluralize($class);
