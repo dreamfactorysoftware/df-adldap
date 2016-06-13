@@ -3,7 +3,6 @@ namespace DreamFactory\Core\ADLdap\Components;
 
 use DreamFactory\Core\ADLdap\Contracts\Provider;
 use DreamFactory\Core\Exceptions\InternalServerErrorException;
-use DreamFactory\Library\Utility\ArrayUtils;
 use DreamFactory\Core\Exceptions\BadRequestException;
 use DreamFactory\Core\Exceptions\NotFoundException;
 
@@ -203,9 +202,11 @@ class OpenLdap implements Provider
         $search = ldap_search($connection, $baseDn, '(' . $uidField . '=' . $username . ')');
         $result = ldap_get_entries($connection, $search);
 
-        $dn = ArrayUtils::getDeep($result, 0, 'dn');
+        if (isset($result[0]['dn'])) {
+            return $result[0]['dn'];
+        }
 
-        return $dn;
+        return null;
     }
 
     /**

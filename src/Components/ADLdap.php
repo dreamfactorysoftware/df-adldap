@@ -3,7 +3,6 @@ namespace DreamFactory\Core\ADLdap\Components;
 
 use DreamFactory\Core\Exceptions\BadRequestException;
 use DreamFactory\Core\Exceptions\NotFoundException;
-use DreamFactory\Library\Utility\ArrayUtils;
 
 class ADLdap extends OpenLdap
 {
@@ -159,7 +158,7 @@ class ADLdap extends OpenLdap
         $group = $this->search(
             "(&(objectCategory=group)(objectClass=group)(cn=" . $cn . "))"
         );
-        if (!ArrayUtils::get($group, 'count')) {
+        if (!array_get($group, 'count')) {
             throw new NotFoundException('Group not found by cn [' . $cn . ']');
         }
 
@@ -176,7 +175,7 @@ class ADLdap extends OpenLdap
         array_shift($groups);
 
         foreach ($groups as $group) {
-            if (ArrayUtils::getDeep($group, 'primarygrouptoken', 0) === $id) {
+            if (isset($group['primarygrouptoken'][0]) && ($group['primarygrouptoken'][0] === $id)) {
                 return new ADGroup($group);
             }
         }
@@ -216,7 +215,7 @@ class ADLdap extends OpenLdap
         $computer = $this->search(
             "(&(objectCategory=computer)(objectClass=computer)(cn=" . $cn . "))"
         );
-        if (!ArrayUtils::get($computer, 'count')) {
+        if (!array_get($computer, 'count')) {
             throw new NotFoundException('Computer not found by cn [' . $cn . ']');
         }
 
