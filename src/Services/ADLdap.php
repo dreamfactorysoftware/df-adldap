@@ -1,6 +1,7 @@
 <?php
 namespace DreamFactory\Core\ADLdap\Services;
 
+use DreamFactory\Core\ADLdap\Components\ADGroup;
 use DreamFactory\Core\ADLdap\Models\RoleADLdap;
 use DreamFactory\Core\ADLdap\Resources\Computer;
 use DreamFactory\Core\ADLdap\Resources\Group;
@@ -86,13 +87,12 @@ class ADLdap extends LDAP
     {
         if (array_get($this->config, 'map_group_to_role', false)) {
             $groups = $this->driver->getGroups();
-            $primaryGroupDn = ArrayUtils::findByKeyValue($groups, 'primary', true, 'dn');
-            $role = RoleADLdap::whereDn($primaryGroupDn)->first();
+            $primaryGroup = ArrayUtils::findByKeyValue($groups, 'primary', true);
+            $role = $this->findRoleByGroup($primaryGroup);
 
             if (empty($role)) {
                 foreach ($groups as $group) {
-                    $groupDn = array_get($group, 'dn');
-                    $role = RoleADLdap::whereDn($groupDn)->first();
+                    $role = $this->findRoleByGroup($group);
                     if (!empty($role)) {
                         return $role->role_id;
                     }
@@ -107,6 +107,45 @@ class ADLdap extends LDAP
         return $this->defaultRole;
     }
 
+    /**
+     * Finds a matching role, first with group dn then if not found,
+     * finds with parent group's (memberOf) dn. (supporting sub-group).
+     *
+     * @param array $group
+     *
+     * @return mixed|null|static
+     */
+    public function findRoleByGroup(array $group)
+    {
+        $dn = array_get($group, 'dn');
+
+        if (!empty($dn)) {
+            $role = RoleADLdap::whereDn($dn)->first();
+
+            if (empty($role) && array_get($this->config, 'map_group_hierarchy', false)) {
+                $memberOf = array_get($group, 'memberof');
+                $parentGroups = (is_array($memberOf)) ? $memberOf : [$memberOf];
+
+                foreach ($parentGroups as $parentGroupDn) {
+                    if (!empty($parentGroupDn)) {
+                        $group = new ADGroup($this->driver->getObjectByDn($parentGroupDn));
+                        $role = $this->findRoleByGroup($group->getData());
+                        if (!empty($role)) {
+                            return $role;
+                        }
+                    }
+                }
+
+                return null;
+            }
+
+            return $role;
+        }
+
+        return null;
+    }
+
+    /** @inheritdoc */
     public function getApiDocInfo()
     {
         $base = parent::getApiDocInfo();

@@ -6,7 +6,7 @@ use DreamFactory\Core\Models\Role;
 
 class ADConfig extends LDAPConfig
 {
-    /** @type array  */
+    /** @type array */
     protected $fillable = [
         'service_id',
         'default_role',
@@ -15,17 +15,23 @@ class ADConfig extends LDAPConfig
         'account_suffix',
         'username',
         'password',
-        'map_group_to_role'
+        'map_group_to_role',
+        'map_group_hierarchy'
     ];
 
-    /** @type array  */
+    /** @type array */
     protected $hidden = [];
 
-    /** @type array  */
+    /** @type array */
     protected $encrypted = ['password'];
 
-    /** @type array  */
-    protected $casts = ['service_id' => 'integer', 'default_role' => 'integer', 'map_group_to_role' => 'boolean'];
+    /** @type array */
+    protected $casts = [
+        'service_id'          => 'integer',
+        'default_role'        => 'integer',
+        'map_group_to_role'   => 'boolean',
+        'map_group_hierarchy' => 'boolean'
+    ];
 
     /** @inheritdoc */
     protected static function prepareConfigSchemaField(array &$schema)
@@ -59,7 +65,11 @@ class ADConfig extends LDAPConfig
                 $schema['description'] = 'The full account suffix for your domain.';
                 break;
             case 'map_group_to_role':
-                $schema['description'] = 'Checking this will map your Roles to AD Groups.';
+                $schema['description'] = 'Checking this will map your user group to corresponding role.';
+                break;
+            case 'map_group_hierarchy':
+                $schema['label'] = 'Allow Group Hierarchy When Mapping';
+                $schema['description'] = 'Checking this will map your user group or parent group to corresponding role.';
                 break;
             case 'username':
                 $schema['description'] = '(Optional) Enter AD administrator username to enable additional features.';

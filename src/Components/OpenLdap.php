@@ -116,11 +116,24 @@ class OpenLdap implements Provider
     /** @inheritdoc */
     public function getObjectByDn($dn)
     {
-        $rs = ldap_read($this->connection, $dn, "(objectclass=*)");
-        $objInfo = ldap_get_entries($this->connection, $rs);
+        $cookie = '';
+        $out = ['count' => 0];
 
-        if (isset($objInfo[0])) {
-            return $objInfo[0];
+        do {
+            ldap_control_paged_result($this->connection, $this->pageSize, true, $cookie);
+
+            $search = ldap_read($this->connection, $dn, "(objectclass=*)");
+            $result = ldap_get_entries($this->connection, $search);
+
+            $out['count'] += $result['count'];
+            array_shift($result);
+            $out = array_merge($out, $result);
+
+            ldap_control_paged_result_response($this->connection, $search, $cookie);
+        } while ($cookie !== null && $cookie != '');
+
+        if (isset($out[0])) {
+            return $out[0];
         }
 
         return [];
