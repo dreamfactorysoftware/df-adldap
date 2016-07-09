@@ -6,7 +6,6 @@ use DreamFactory\Core\Components\RequireExtensions;
 use DreamFactory\Core\Exceptions\UnauthorizedException;
 use DreamFactory\Core\Models\User;
 use DreamFactory\Core\Services\BaseRestService;
-use DreamFactory\Library\Utility\ArrayUtils;
 use DreamFactory\Library\Utility\Enums\Verbs;
 use DreamFactory\Core\ADLdap\Contracts\Provider as ADLdapProvider;
 use DreamFactory\Core\Utility\Session;
@@ -43,17 +42,17 @@ class LDAP extends BaseRestService
      */
     public function __construct($settings = [])
     {
-        $verbAliases = [
+        $settings = (array)$settings;
+        $settings['verbAliases'] = [
             Verbs::PUT   => Verbs::POST,
             Verbs::MERGE => Verbs::PATCH
         ];
-        ArrayUtils::set($settings, "verbAliases", $verbAliases);
         parent::__construct($settings);
 
         static::checkExtensions(['ldap']);
 
-        $this->config = ArrayUtils::get($settings, 'config');
-        $this->defaultRole = ArrayUtils::get($this->config, 'default_role');
+        $this->config = array_get($settings, 'config');
+        $this->defaultRole = array_get($this->config, 'default_role');
         $this->setDriver();
     }
 
@@ -66,7 +65,7 @@ class LDAP extends BaseRestService
         $baseDn = $this->getBaseDn();
 
         $this->driver = new OpenLdap($host, $baseDn);
-        $this->driver->setPageSize(ArrayUtils::get($this->config, 'max_page_size', 1000));
+        $this->driver->setPageSize(array_get($this->config, 'max_page_size', 1000));
     }
 
     /**
@@ -108,7 +107,7 @@ class LDAP extends BaseRestService
      */
     public function getHost()
     {
-        return ArrayUtils::get($this->config, 'host');
+        return array_get($this->config, 'host');
     }
 
     /**
@@ -116,7 +115,7 @@ class LDAP extends BaseRestService
      */
     public function getBaseDn()
     {
-        return ArrayUtils::get($this->config, 'base_dn');
+        return array_get($this->config, 'base_dn');
     }
 
     /**
@@ -130,8 +129,8 @@ class LDAP extends BaseRestService
      */
     public function handleLogin(array $credential, $remember = false)
     {
-        $username = ArrayUtils::get($credential, 'username');
-        $password = ArrayUtils::get($credential, 'password');
+        $username = array_get($credential, 'username');
+        $password = array_get($credential, 'password');
         $auth = $this->driver->authenticate($username, $password);
 
         if ($auth) {

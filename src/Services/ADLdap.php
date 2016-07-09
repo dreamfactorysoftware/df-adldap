@@ -1,6 +1,7 @@
 <?php
 namespace DreamFactory\Core\ADLdap\Services;
 
+use DreamFactory\Core\ADLdap\Components\ADGroup;
 use DreamFactory\Core\ADLdap\Models\RoleADLdap;
 use DreamFactory\Core\ADLdap\Resources\Computer;
 use DreamFactory\Core\ADLdap\Resources\Group;
@@ -8,7 +9,6 @@ use DreamFactory\Core\ADLdap\Resources\User;
 use DreamFactory\Core\Exceptions\BadRequestException;
 use DreamFactory\Core\Exceptions\UnauthorizedException;
 use DreamFactory\Library\Utility\ArrayUtils;
-use DreamFactory\Core\Models\Service;
 use DreamFactory\Core\Exceptions\InternalServerErrorException;
 use DreamFactory\Core\Utility\Session;
 
@@ -43,10 +43,10 @@ class ADLdap extends LDAP
     {
         $host = $this->getHost();
         $baseDn = $this->getBaseDn();
-        $accountSuffix = ArrayUtils::get($this->config, 'account_suffix');
+        $accountSuffix = array_get($this->config, 'account_suffix');
 
         $this->driver = new \DreamFactory\Core\ADLdap\Components\ADLdap($host, $baseDn, $accountSuffix);
-        $this->driver->setPageSize(ArrayUtils::get($this->config, 'max_page_size', 1000));
+        $this->driver->setPageSize(array_get($this->config, 'max_page_size', 1000));
     }
 
     /**
@@ -62,8 +62,8 @@ class ADLdap extends LDAP
      */
     public function authenticateAdminUser($username = null, $password = null)
     {
-        $user = (empty($username)) ? ArrayUtils::get($this->config, 'username') : $username;
-        $pwd = (empty($password)) ? ArrayUtils::get($this->config, 'password') : $password;
+        $user = (empty($username)) ? array_get($this->config, 'username') : $username;
+        $pwd = (empty($password)) ? array_get($this->config, 'password') : $password;
 
         if (empty($user) || empty($pwd)) {
             throw new BadRequestException('No username and/or password found in service definition.');
@@ -85,15 +85,14 @@ class ADLdap extends LDAP
     /** @inheritdoc */
     public function getRole()
     {
-        if (ArrayUtils::get($this->config, 'map_group_to_role', false)) {
+        if (array_get($this->config, 'map_group_to_role', false)) {
             $groups = $this->driver->getGroups();
-            $primaryGroupDn = ArrayUtils::findByKeyValue($groups, 'primary', true, 'dn');
-            $role = RoleADLdap::whereDn($primaryGroupDn)->first();
+            $primaryGroup = ArrayUtils::findByKeyValue($groups, 'primary', true);
+            $role = $this->findRoleByGroup($primaryGroup);
 
             if (empty($role)) {
                 foreach ($groups as $group) {
-                    $groupDn = ArrayUtils::get($group, 'dn');
-                    $role = RoleADLdap::whereDn($groupDn)->first();
+                    $role = $this->findRoleByGroup($group);
                     if (!empty($role)) {
                         return $role->role_id;
                     }
@@ -108,6 +107,45 @@ class ADLdap extends LDAP
         return $this->defaultRole;
     }
 
+    /**
+     * Finds a matching role, first with group dn then if not found,
+     * finds with parent group's (memberOf) dn. (supporting sub-group).
+     *
+     * @param array $group
+     *
+     * @return mixed|null|static
+     */
+    public function findRoleByGroup(array $group)
+    {
+        $dn = array_get($group, 'dn');
+
+        if (!empty($dn)) {
+            $role = RoleADLdap::whereDn($dn)->first();
+
+            if (empty($role) && array_get($this->config, 'map_group_hierarchy', false)) {
+                $memberOf = array_get($group, 'memberof');
+                $parentGroups = (is_array($memberOf)) ? $memberOf : [$memberOf];
+
+                foreach ($parentGroups as $parentGroupDn) {
+                    if (!empty($parentGroupDn)) {
+                        $group = new ADGroup($this->driver->getObjectByDn($parentGroupDn));
+                        $role = $this->findRoleByGroup($group->getData());
+                        if (!empty($role)) {
+                            return $role;
+                        }
+                    }
+                }
+
+                return null;
+            }
+
+            return $role;
+        }
+
+        return null;
+    }
+
+    /** @inheritdoc */
     public function getApiDocInfo()
     {
         $base = parent::getApiDocInfo();
@@ -115,14 +153,14 @@ class ADLdap extends LDAP
         $apis = [];
         $models = [];
         foreach (static::$resources as $resourceInfo) {
-            $resourceClass = ArrayUtils::get($resourceInfo, 'class_name');
+            $resourceClass = array_get($resourceInfo, 'class_name');
 
             if (!class_exists($resourceClass)) {
                 throw new InternalServerErrorException('Service configuration class name lookup failed for resource ' .
                     $resourceClass);
             }
 
-            $resourceName = ArrayUtils::get($resourceInfo, static::RESOURCE_IDENTIFIER);
+            $resourceName = array_get($resourceInfo, static::RESOURCE_IDENTIFIER);
             if (Session::checkForAnyServicePermissions($this->name, $resourceName)) {
                 $results = $resourceClass::getApiDocInfo($this->name, $resourceInfo);
                 if (isset($results, $results['paths'])) {

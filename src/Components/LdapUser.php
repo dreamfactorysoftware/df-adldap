@@ -2,7 +2,6 @@
 namespace DreamFactory\Core\ADLdap\Components;
 
 use DreamFactory\Core\ADLdap\Contracts\User as LdapUserContract;
-use DreamFactory\Library\Utility\ArrayUtils;
 
 class LdapUser extends BaseObject implements LdapUserContract
 {
@@ -50,7 +49,7 @@ class LdapUser extends BaseObject implements LdapUserContract
      */
     public function getId()
     {
-        return ArrayUtils::get($this->data, 'uidnumber');
+        return array_get($this->data, 'uidnumber');
     }
 
     /**
@@ -58,7 +57,7 @@ class LdapUser extends BaseObject implements LdapUserContract
      */
     public function getUid()
     {
-        return ArrayUtils::get($this->data, 'uid');
+        return array_get($this->data, 'uid');
     }
 
     /**
@@ -66,7 +65,7 @@ class LdapUser extends BaseObject implements LdapUserContract
      */
     public function getName()
     {
-        return ArrayUtils::get($this->data, 'cn');
+        return array_get($this->data, 'cn');
     }
 
     /**
@@ -74,7 +73,7 @@ class LdapUser extends BaseObject implements LdapUserContract
      */
     public function getFirstName()
     {
-        return ArrayUtils::get($this->data, 'givenname');
+        return array_get($this->data, 'givenname');
     }
 
     /**
@@ -82,7 +81,7 @@ class LdapUser extends BaseObject implements LdapUserContract
      */
     public function getLastName()
     {
-        return ArrayUtils::get($this->data, 'sn');
+        return array_get($this->data, 'sn');
     }
 
     /**
@@ -90,7 +89,7 @@ class LdapUser extends BaseObject implements LdapUserContract
      */
     public function getEmail()
     {
-        return ArrayUtils::get($this->data, 'mail');
+        return array_get($this->data, 'mail');
     }
 
     /**
@@ -98,7 +97,7 @@ class LdapUser extends BaseObject implements LdapUserContract
      */
     public function getPassword()
     {
-        $password = ArrayUtils::get($this->data, 'userpassword');
+        $password = array_get($this->data, 'userpassword');
         $password .= $this->getDn();
         $password .= time();
         $password = bcrypt($password);

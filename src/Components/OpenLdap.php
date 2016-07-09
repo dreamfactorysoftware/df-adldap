@@ -3,7 +3,6 @@ namespace DreamFactory\Core\ADLdap\Components;
 
 use DreamFactory\Core\ADLdap\Contracts\Provider;
 use DreamFactory\Core\Exceptions\InternalServerErrorException;
-use DreamFactory\Library\Utility\ArrayUtils;
 use DreamFactory\Core\Exceptions\BadRequestException;
 use DreamFactory\Core\Exceptions\NotFoundException;
 
@@ -117,11 +116,24 @@ class OpenLdap implements Provider
     /** @inheritdoc */
     public function getObjectByDn($dn)
     {
-        $rs = ldap_read($this->connection, $dn, "(objectclass=*)");
-        $objInfo = ldap_get_entries($this->connection, $rs);
+        $cookie = '';
+        $out = ['count' => 0];
 
-        if (isset($objInfo[0])) {
-            return $objInfo[0];
+        do {
+            ldap_control_paged_result($this->connection, $this->pageSize, true, $cookie);
+
+            $search = ldap_read($this->connection, $dn, "(objectclass=*)");
+            $result = ldap_get_entries($this->connection, $search);
+
+            $out['count'] += $result['count'];
+            array_shift($result);
+            $out = array_merge($out, $result);
+
+            ldap_control_paged_result_response($this->connection, $search, $cookie);
+        } while ($cookie !== null && $cookie != '');
+
+        if (isset($out[0])) {
+            return $out[0];
         }
 
         return [];
@@ -203,9 +215,11 @@ class OpenLdap implements Provider
         $search = ldap_search($connection, $baseDn, '(' . $uidField . '=' . $username . ')');
         $result = ldap_get_entries($connection, $search);
 
-        $dn = ArrayUtils::getDeep($result, 0, 'dn');
+        if (isset($result[0]['dn'])) {
+            return $result[0]['dn'];
+        }
 
-        return $dn;
+        return null;
     }
 
     /**

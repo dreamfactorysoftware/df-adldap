@@ -5,7 +5,6 @@ use DreamFactory\Core\Contracts\RequestHandlerInterface;
 use DreamFactory\Core\Utility\ResourcesWrapper;
 use DreamFactory\Core\Enums\ApiOptions;
 use DreamFactory\Core\ADLdap\Contracts\Provider;
-use DreamFactory\Library\Utility\ArrayUtils;
 
 class Group extends BaseADLdapResource
 {
@@ -69,7 +68,7 @@ class Group extends BaseADLdapResource
         $base = parent::getApiDocInfo($service, $resource);
         $serviceName = strtolower($service);
         $class = trim(strrchr(static::class, '\\'), '\\');
-        $resourceName = strtolower(ArrayUtils::get($resource, 'name', $class));
+        $resourceName = strtolower(array_get($resource, 'name', $class));
         $path = '/' . $serviceName . '/' . $resourceName;
 
         $base['paths'][$path]['get']['parameters'][] = [

@@ -1,8 +1,6 @@
 <?php
 namespace DreamFactory\Core\ADLdap\Components;
 
-use DreamFactory\Library\Utility\ArrayUtils;
-use DreamFactory\Core\Exceptions\InternalServerErrorException;
 
 class ADUser extends LdapUser
 {
@@ -11,7 +9,7 @@ class ADUser extends LdapUser
      */
     public function getUid()
     {
-        return ArrayUtils::get($this->data, 'samaccountname');
+        return array_get($this->data, 'samaccountname');
     }
 
     /**
@@ -19,7 +17,7 @@ class ADUser extends LdapUser
      */
     public function getName()
     {
-        return ArrayUtils::get($this->data, 'name');
+        return array_get($this->data, 'name');
     }
 
     /**

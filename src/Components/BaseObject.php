@@ -2,8 +2,6 @@
 
 namespace DreamFactory\Core\ADLdap\Components;
 
-use DreamFactory\Core\Exceptions\InternalServerErrorException;
-use DreamFactory\Library\Utility\ArrayUtils;
 use DreamFactory\Core\Utility\DataFormatter;
 use DreamFactory\Core\Exceptions\NotFoundException;
 
@@ -65,9 +63,9 @@ class BaseObject
             }
 
             if (is_array($value)) {
-                if (ArrayUtils::get($value, 'count') === 1) {
+                if (array_get($value, 'count') === 1) {
                     $object[$key] = $value[0];
-                } else if (ArrayUtils::get($value, 'count') > 1) {
+                } else if (array_get($value, 'count') > 1) {
                     unset($object[$key]['count']);
                 }
             }
@@ -89,7 +87,7 @@ class BaseObject
     {
         $key = strtolower(substr($method, 3));
 
-        return ArrayUtils::get($this->data, $key);
+        return array_get($this->data, $key);
     }
 
     /**
@@ -102,6 +100,6 @@ class BaseObject
      */
     public function __get($key)
     {
-        return ArrayUtils::get($this->data, $key);
+        return array_get($this->data, $key);
     }
 }
