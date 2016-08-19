@@ -42,7 +42,6 @@ class BaseADLdapResource extends BaseRestResource
                         $pluralClass .
                         '.',
                     'operationId'       => 'get' . $capitalized . $pluralClass,
-                    'x-publishedEvents' => [$eventPath . '.list'],
                     'consumes'          => ['application/json', 'application/xml', 'text/csv'],
                     'produces'          => ['application/json', 'application/xml', 'text/csv'],
                     'parameters'        => [
@@ -72,7 +71,6 @@ class BaseADLdapResource extends BaseRestResource
                     'tags'              => [$serviceName],
                     'summary'           => 'get' . $capitalized . $class . '() - Retrieve one ' . $class . '.',
                     'operationId'       => 'get' . $capitalized . $class,
-                    'x-publishedEvents' => [$eventPath . '.read'],
                     'parameters'        => [
                         [
                             'name'        => strtolower($class) . '_name',
