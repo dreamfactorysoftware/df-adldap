@@ -8,6 +8,10 @@ This project adheres to [Semantic Versioning](http://semver.org/).
 
 ### Fixed
 
+## [0.4.0] - 2016-08-21
+### Changed
+- General cleanup from declaration changes in df-core for service doc and providers
+
 ## [0.3.1] - 2016-07-08
 ### Added
 - DF-752 Added support for AD group hierarchy when mapping DreamFactory role to AD group.
@@ -56,7 +60,8 @@ This project adheres to [Semantic Versioning](http://semver.org/).
 ## 0.1.0 - 2015-10-24
 First official release working with the new [dreamfactory](https://github.com/dreamfactorysoftware/dreamfactory) project.
 
-[Unreleased]: https://github.com/dreamfactorysoftware/df-adldap/compare/0.3.1...HEAD
+[Unreleased]: https://github.com/dreamfactorysoftware/df-adldap/compare/0.4.0...HEAD
+[0.3.1]: https://github.com/dreamfactorysoftware/df-adldap/compare/0.3.1...0.4.0
 [0.3.1]: https://github.com/dreamfactorysoftware/df-adldap/compare/0.3.0...0.3.1
 [0.3.0]: https://github.com/dreamfactorysoftware/df-adldap/compare/0.2.2...0.3.0
 [0.2.2]: https://github.com/dreamfactorysoftware/df-adldap/compare/0.2.1...0.2.2
