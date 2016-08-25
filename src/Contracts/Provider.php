@@ -19,10 +19,11 @@ interface Provider
      *
      * @param string $username
      * @param string $uidField
+     * @param string $baseDn
      *
      * @return string
      */
-    public function getUserDn($username, $uidField = 'uid');
+    public function getUserDn($username, $uidField = 'uid', $baseDn = null);
 
     /**
      * Authenticates User.
