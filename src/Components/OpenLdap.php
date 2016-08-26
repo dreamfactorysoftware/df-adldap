@@ -114,7 +114,7 @@ class OpenLdap implements Provider
     }
 
     /** @inheritdoc */
-    public function getObjectByDn($dn)
+    public function getObjectByDn($dn, $attributes = [])
     {
         $cookie = '';
         $out = ['count' => 0];
@@ -122,7 +122,7 @@ class OpenLdap implements Provider
         do {
             ldap_control_paged_result($this->connection, $this->pageSize, true, $cookie);
 
-            $search = ldap_read($this->connection, $dn, "(objectclass=*)");
+            $search = ldap_read($this->connection, $dn, "(objectclass=*)", $attributes);
             $result = ldap_get_entries($this->connection, $search);
 
             $out['count'] += $result['count'];

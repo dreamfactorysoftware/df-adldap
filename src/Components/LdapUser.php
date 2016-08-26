@@ -6,37 +6,6 @@ use DreamFactory\Core\ADLdap\Contracts\User as LdapUserContract;
 class LdapUser extends BaseObject implements LdapUserContract
 {
     /**
-     * @param array $userInfo
-     */
-    public function __construct(array $userInfo)
-    {
-        $this->data = static::cleanUserData($userInfo);
-        $this->validate();
-    }
-
-    /**
-     * Cleans and re-formats user data.
-     *
-     * @param array $user
-     *
-     * @return array
-     */
-    public static function cleanUserData(array $user)
-    {
-        return static::cleanData($user);
-    }
-
-    /**
-     * Validates user data array.
-     *
-     * @throws \DreamFactory\Core\Exceptions\InternalServerErrorException
-     */
-    protected function validate()
-    {
-        return true;
-    }
-
-    /**
      * {@inheritdoc}
      */
     public function getDomain()

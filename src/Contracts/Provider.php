@@ -97,10 +97,11 @@ interface Provider
      * Gets AD/Ldap objects by its dn
      *
      * @param string $dn
+     * @param array  $attributes
      *
      * @return array
      */
-    public function getObjectByDn($dn);
+    public function getObjectByDn($dn, $attributes = []);
 
     /**
      * Gets the connection resource.

@@ -190,7 +190,7 @@ class LDAP extends BaseRestService
             ];
 
             $user = User::create($data);
-        } else if(empty($user->username)){
+        } else if (empty($user->username)) {
             $user->username = $ldapUser->getSamAccountname();
             $user->update();
         }
