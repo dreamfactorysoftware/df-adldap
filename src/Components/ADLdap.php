@@ -27,10 +27,10 @@ class ADLdap extends OpenLdap
     {
         if (empty($suffix)) {
             $baseDn = $this->getBaseDn();
-            $suffix = static::getDomainName($baseDn);
+            $this->accountSuffix = static::getDomainName($baseDn);
+        } else {
+            $this->accountSuffix = trim(ltrim($suffix, '@'));
         }
-
-        $this->accountSuffix = $suffix;
     }
 
     /**
@@ -56,8 +56,7 @@ class ADLdap extends OpenLdap
             $preAuth = ldap_bind($this->connection, $username . '@' . $accountSuffix, $password);
 
             if ($preAuth) {
-                $this->userDn = $this->getUserDn($username, 'samaccountname');
-
+                $this->userDn = $this->getUserDn($username, 'samaccountname', static::getRootDn($this->baseDn));
                 $auth = ldap_bind($this->connection, $this->userDn, $password);
             } else {
                 $auth = false;
@@ -90,7 +89,12 @@ class ADLdap extends OpenLdap
         } else {
             $user = $this->getUserByUserName($username);
         }
+
         $groups = $user->memberof;
+
+        if (empty($groups)) {
+            return [];
+        }
 
         if (!is_array($groups)) {
             $groups = [$groups];
@@ -107,12 +111,15 @@ class ADLdap extends OpenLdap
         }
 
         $primaryGroupId = $user->primarygroupid;
-        $primaryGroup = $this->getGroupByPrimaryGroupId($primaryGroupId);
 
-        if (in_array('primary', $attributes) || empty($attributes)) {
-            $result[] = array_merge($primaryGroup->getData($attributes), ['primary' => true]);
-        } else {
-            $result[] = $primaryGroup->getData($attributes);
+        if (!empty($primaryGroupId)) {
+            $primaryGroup = $this->getGroupByPrimaryGroupId($primaryGroupId);
+
+            if (in_array('primary', $attributes) || empty($attributes)) {
+                $result[] = array_merge($primaryGroup->getData($attributes), ['primary' => true]);
+            } else {
+                $result[] = $primaryGroup->getData($attributes);
+            }
         }
 
         return $result;
@@ -169,7 +176,8 @@ class ADLdap extends OpenLdap
     {
         $groups = $this->search(
             "(&(objectCategory=group)(objectClass=group))",
-            ['*', 'primarygrouptoken']
+            ['*', 'primarygrouptoken'],
+            static::getRootDn($this->baseDn)
         );
 
         array_shift($groups);

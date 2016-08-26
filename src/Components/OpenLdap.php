@@ -191,7 +191,7 @@ class OpenLdap implements Provider
         }
 
         foreach ($dcs as $key => $dc) {
-            $dcs[$key] = substr($dc, strpos($dc, '=') + 1);
+            $dcs[$key] = trim(substr($dc, strpos($dc, '=') + 1));
         }
 
         $domain = implode('.', $dcs);
@@ -200,16 +200,24 @@ class OpenLdap implements Provider
     }
 
     /**
-     * Gets DN by username
+     * @param $dn
      *
-     * @param $username
-     * @param $uidField
+     * Fetches the root (DC parts) of a DN
      *
-     * @return string
+     * @return mixed|string
      */
-    public function getUserDn($username, $uidField = 'uid')
+    public static function getRootDn($dn)
     {
-        $baseDn = $this->baseDn;
+        $dn = str_replace('DC=', 'dc=', $dn);
+        $dn = substr($dn, strpos($dn, 'dc='));
+
+        return $dn;
+    }
+
+    /** {@inheritdoc} */
+    public function getUserDn($username, $uidField = 'uid', $baseDn = null)
+    {
+        $baseDn = (empty($baseDn)) ? $this->baseDn : $baseDn;
         $connection = $this->connection;
 
         $search = ldap_search($connection, $baseDn, '(' . $uidField . '=' . $username . ')');
@@ -225,14 +233,15 @@ class OpenLdap implements Provider
     /**
      * A generic function for searching AD/LDAP server.
      *
-     * @param       $filter
-     * @param array $attributes
+     * @param string $filter
+     * @param array  $attributes
+     * @param string $baseDn
      *
      * @return array
      */
-    public function search($filter, array $attributes = [])
+    public function search($filter, array $attributes = [], $baseDn = null)
     {
-        $baseDn = $this->baseDn;
+        $baseDn = (empty($baseDn)) ? $this->baseDn : $baseDn;
         $connection = $this->connection;
 
         $cookie = '';
