@@ -1,6 +1,7 @@
 <?php
 namespace DreamFactory\Core\ADLdap\Models;
 
+use DreamFactory\Core\Components\AppRoleMapper;
 use DreamFactory\Core\Components\RequireExtensions;
 use DreamFactory\Core\Models\BaseServiceConfigModel;
 use DreamFactory\Core\Exceptions\BadRequestException;
@@ -8,7 +9,7 @@ use DreamFactory\Core\Models\Role;
 
 class LDAPConfig extends BaseServiceConfigModel
 {
-    use RequireExtensions;
+    use RequireExtensions, AppRoleMapper;
 
     protected $table = 'ldap_config';
 
