@@ -30,7 +30,6 @@ class LDAPConfig extends BaseServiceConfigModel
         static::checkExtensions(['ldap']);
 
         $validator = static::makeValidator($config, [
-            'default_role' => 'required',
             'host'         => 'required',
             'base_dn'      => 'required'
         ], $create);
