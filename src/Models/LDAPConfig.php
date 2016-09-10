@@ -6,6 +6,7 @@ use DreamFactory\Core\Components\RequireExtensions;
 use DreamFactory\Core\Models\BaseServiceConfigModel;
 use DreamFactory\Core\Exceptions\BadRequestException;
 use DreamFactory\Core\Models\Role;
+use DreamFactory\Core\Models\AppRoleMap;
 
 class LDAPConfig extends BaseServiceConfigModel
 {
@@ -30,8 +31,8 @@ class LDAPConfig extends BaseServiceConfigModel
         static::checkExtensions(['ldap']);
 
         $validator = static::makeValidator($config, [
-            'host'         => 'required',
-            'base_dn'      => 'required'
+            'host'    => 'required',
+            'base_dn' => 'required'
         ], $create);
 
         if ($validator->fails()) {
@@ -40,6 +41,17 @@ class LDAPConfig extends BaseServiceConfigModel
         }
 
         return true;
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    public static function getConfigSchema()
+    {
+        $schema = parent::getConfigSchema();
+        $schema[] = AppRoleMap::getConfigSchema();
+
+        return $schema;
     }
 
     /**
