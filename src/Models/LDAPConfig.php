@@ -49,7 +49,8 @@ class LDAPConfig extends BaseServiceConfigModel
     public static function getConfigSchema()
     {
         $schema = parent::getConfigSchema();
-        $schema[] = AppRoleMap::getConfigSchema();
+        $appRoleMap = AppRoleMap::getConfigSchema();
+        array_splice($schema, 1, 0, [$appRoleMap]);
 
         return $schema;
     }
