@@ -19,10 +19,11 @@ interface Provider
      *
      * @param string $username
      * @param string $uidField
+     * @param string $baseDn
      *
      * @return string
      */
-    public function getUserDn($username, $uidField = 'uid');
+    public function getUserDn($username, $uidField = 'uid', $baseDn = null);
 
     /**
      * Authenticates User.
@@ -96,10 +97,11 @@ interface Provider
      * Gets AD/Ldap objects by its dn
      *
      * @param string $dn
+     * @param array  $attributes
      *
      * @return array
      */
-    public function getObjectByDn($dn);
+    public function getObjectByDn($dn, $attributes = []);
 
     /**
      * Gets the connection resource.

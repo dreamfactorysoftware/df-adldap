@@ -27,10 +27,10 @@ class ADLdap extends OpenLdap
     {
         if (empty($suffix)) {
             $baseDn = $this->getBaseDn();
-            $suffix = static::getDomainName($baseDn);
+            $this->accountSuffix = static::getDomainName($baseDn);
+        } else {
+            $this->accountSuffix = trim(ltrim($suffix, '@'));
         }
-
-        $this->accountSuffix = $suffix;
     }
 
     /**
@@ -56,8 +56,7 @@ class ADLdap extends OpenLdap
             $preAuth = ldap_bind($this->connection, $username . '@' . $accountSuffix, $password);
 
             if ($preAuth) {
-                $this->userDn = $this->getUserDn($username, 'samaccountname');
-
+                $this->userDn = $this->getUserDn($username, 'samaccountname', static::getRootDn($this->baseDn));
                 $auth = ldap_bind($this->connection, $this->userDn, $password);
             } else {
                 $auth = false;
@@ -90,29 +89,36 @@ class ADLdap extends OpenLdap
         } else {
             $user = $this->getUserByUserName($username);
         }
+
         $groups = $user->memberof;
 
-        if (!is_array($groups)) {
-            $groups = [$groups];
-        }
+        if (!empty($groups)) {
 
-        foreach ($groups as $group) {
-            $adGroup = new ADGroup($this->getObjectByDn($group));
+            if (!is_array($groups)) {
+                $groups = [$groups];
+            }
 
-            if (in_array('primary', $attributes) || empty($attributes)) {
-                $result[] = array_merge($adGroup->getData($attributes), ['primary' => false]);
-            } else {
-                $result[] = $adGroup->getData($attributes);
+            foreach ($groups as $group) {
+                $adGroup = new ADGroup($this->getObjectByDn($group));
+
+                if (in_array('primary', $attributes) || empty($attributes)) {
+                    $result[] = array_merge($adGroup->getData($attributes), ['primary' => false]);
+                } else {
+                    $result[] = $adGroup->getData($attributes);
+                }
             }
         }
 
-        $primaryGroupId = $user->primarygroupid;
-        $primaryGroup = $this->getGroupByPrimaryGroupId($primaryGroupId);
+        $primaryGroupObjectSID = $user->getPrimaryGroupObjectSID();
 
-        if (in_array('primary', $attributes) || empty($attributes)) {
-            $result[] = array_merge($primaryGroup->getData($attributes), ['primary' => true]);
-        } else {
-            $result[] = $primaryGroup->getData($attributes);
+        if (!empty($primaryGroupObjectSID)) {
+            $primaryGroup = $this->getGroupByObjectSID($primaryGroupObjectSID);
+
+            if (in_array('primary', $attributes) || empty($attributes)) {
+                $result[] = array_merge($primaryGroup->getData($attributes), ['primary' => true]);
+            } else {
+                $result[] = $primaryGroup->getData($attributes);
+            }
         }
 
         return $result;
@@ -165,22 +171,27 @@ class ADLdap extends OpenLdap
         return new ADGroup($group[0]);
     }
 
-    protected function getGroupByPrimaryGroupId($id)
+    /**
+     * Retrieves a group by its ObjectSID.
+     *
+     * @param string $id
+     *
+     * @return mixed
+     * @throws \DreamFactory\Core\Exceptions\NotFoundException
+     */
+    protected function getGroupByObjectSID($id)
     {
         $groups = $this->search(
-            "(&(objectCategory=group)(objectClass=group))",
-            ['*', 'primarygrouptoken']
+            "(&(objectCategory=group)(objectClass=group)(objectSID=$id))",
+            [],
+            static::getRootDn($this->baseDn)
         );
 
-        array_shift($groups);
-
-        foreach ($groups as $group) {
-            if (isset($group['primarygrouptoken'][0]) && ($group['primarygrouptoken'][0] === $id)) {
-                return new ADGroup($group);
-            }
+        if (!empty($groups) && isset($groups[0])) {
+            return new ADGroup($groups[0]);
         }
 
-        throw new NotFoundException('Group not found by primarygrouptoken [' . $id . ']');
+        throw new NotFoundException('Group not found by ObjectSID [' . $id . ']');
     }
 
     /** @inheritdoc */

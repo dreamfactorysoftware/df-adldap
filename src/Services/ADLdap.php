@@ -87,21 +87,21 @@ class ADLdap extends LDAP
     {
         if (array_get($this->config, 'map_group_to_role', false)) {
             $groups = $this->driver->getGroups();
-            $primaryGroup = ArrayUtils::findByKeyValue($groups, 'primary', true);
-            $role = $this->findRoleByGroup($primaryGroup);
+            if (!empty($groups)) {
+                $primaryGroup = ArrayUtils::findByKeyValue($groups, 'primary', true);
+                $role = $this->findRoleByGroup($primaryGroup);
 
-            if (empty($role)) {
-                foreach ($groups as $group) {
-                    $role = $this->findRoleByGroup($group);
-                    if (!empty($role)) {
-                        return $role->role_id;
+                if (!empty($role)) {
+                    return $role->role_id;
+                } else {
+                    foreach ($groups as $group) {
+                        $role = $this->findRoleByGroup($group);
+                        if (!empty($role)) {
+                            return $role->role_id;
+                        }
                     }
                 }
-
-                return $this->defaultRole;
             }
-
-            return $role->role_id;
         }
 
         return $this->defaultRole;
@@ -113,7 +113,7 @@ class ADLdap extends LDAP
      *
      * @param array $group
      *
-     * @return mixed|null|static
+     * @return mixed|null
      */
     public function findRoleByGroup(array $group)
     {

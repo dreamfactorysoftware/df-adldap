@@ -5,10 +5,23 @@ namespace DreamFactory\Core\ADLdap\Components;
 use DreamFactory\Core\Utility\DataFormatter;
 use DreamFactory\Core\Exceptions\NotFoundException;
 
-class BaseObject
+abstract class BaseObject
 {
     /** @var array */
     protected $data = [];
+
+    /** @var array */
+    protected $rawData = [];
+
+    /**
+     * @param array $userInfo
+     */
+    public function __construct(array $userInfo)
+    {
+        $this->rawData = static::cleanData($userInfo, true);
+        $this->data = static::cleanData($this->rawData);
+        $this->validate();
+    }
 
     /**
      * Validates object.
@@ -40,24 +53,29 @@ class BaseObject
     /**
      * Cleans and re-formats data.
      *
-     * @param array $object
+     * @param array   $object
+     * @param boolean $cleanNumericOnly
      *
      * @return array
      */
-    public static function cleanData(array $object)
+    public static function cleanData(array $object, $cleanNumericOnly = false)
     {
         foreach ($object as $key => $value) {
-            if ($key === 'count') {
+            if ('count' === $key) {
                 unset($object[$key]);
                 continue;
-            }
-            if (is_numeric($key)) {
+            } elseif (is_numeric($key)) {
                 unset($object[$key]);
                 continue;
-            } else if (is_array($value) && isset($value[0]) && !DataFormatter::isPrintable($value[0])) {
+            } else if (
+                !$cleanNumericOnly &&
+                is_array($value) &&
+                isset($value[0]) &&
+                !DataFormatter::isPrintable($value[0])
+            ) {
                 unset($object[$key]);
                 continue;
-            } else if (is_string($value) && !DataFormatter::isPrintable($value)) {
+            } else if (!$cleanNumericOnly && is_string($value) && !DataFormatter::isPrintable($value)) {
                 unset($object[$key]);
                 continue;
             }
@@ -100,6 +118,6 @@ class BaseObject
      */
     public function __get($key)
     {
-        return array_get($this->data, $key);
+        return array_get($this->data, $key, array_get($this->rawData, $key));
     }
 }

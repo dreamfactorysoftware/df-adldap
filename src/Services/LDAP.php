@@ -190,14 +190,17 @@ class LDAP extends BaseRestService
             ];
 
             $user = User::create($data);
-        } else if(empty($user->username)){
+        } else if (empty($user->username)) {
             $user->username = $ldapUser->getSamAccountname();
             $user->update();
         }
 
-        $defaultRole = $this->getRole();
-
-        User::applyDefaultUserAppRole($user, $defaultRole);
+        if (!empty($defaultRole = $this->getRole())) {
+            User::applyDefaultUserAppRole($user, $defaultRole);
+        }
+        if (!empty($serviceId = $this->getServiceId())) {
+            User::applyAppRoleMapByService($user, $serviceId);
+        }
 
         return $user;
     }
