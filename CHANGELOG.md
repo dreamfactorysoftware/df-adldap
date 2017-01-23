@@ -6,6 +6,7 @@ This project adheres to [Semantic Versioning](http://semver.org/).
 ### Added
 ### Changed
 ### Fixed
+- DF-716 Fixed AD login issue with accented characters in user names.
 
 ## [0.7.0] - 2017-01-16
 - Dependency changes

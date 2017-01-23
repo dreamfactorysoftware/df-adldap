@@ -174,6 +174,7 @@ class LDAP extends BaseRestService
             $email = $emailId . '+' . $serviceName . '@' . $domain;
         }
 
+        $email = filter_var($email, FILTER_SANITIZE_EMAIL);
         $user = User::whereEmail($email)->first();
 
         if (empty($user)) {
