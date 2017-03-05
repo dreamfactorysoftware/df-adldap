@@ -1,6 +1,7 @@
 <?php
 namespace DreamFactory\Core\ADLdap;
 
+use DreamFactory\Core\ADLdap\Commands\ADGroupImport;
 use DreamFactory\Core\ADLdap\Models\ADConfig;
 use DreamFactory\Core\ADLdap\Models\LDAPConfig;
 use DreamFactory\Core\ADLdap\Models\RoleADLdap;
@@ -56,5 +57,17 @@ class ServiceProvider extends \Illuminate\Support\ServiceProvider
         $this->app->resolving('df.system.table_model_map', function (SystemTableModelMapper $df) {
             $df->addMapping('role_adldap', RoleADLdap::class);
         });
+    }
+
+    public function boot()
+    {
+        // add commands, https://laravel.com/docs/5.4/packages#commands
+        /** @noinspection PhpUndefinedMethodInspection */
+        if ($this->app->runningInConsole()) {
+            $this->commands([ADGroupImport::class]);
+        }
+
+        // add migrations
+        $this->loadMigrationsFrom(__DIR__ . '/../database/migrations');
     }
 }
