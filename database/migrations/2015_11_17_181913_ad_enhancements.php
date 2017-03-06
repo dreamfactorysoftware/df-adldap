@@ -34,7 +34,7 @@ class AdEnhancements extends Migration
             function (Blueprint $t){
                 $t->integer('role_id')->unsigned()->primary();
                 $t->foreign('role_id')->references('id')->on('role')->onDelete('cascade');
-                $t->string('dn')->unique();
+                $t->text('dn');
             }
         );
     }

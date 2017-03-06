@@ -6,6 +6,7 @@ This project adheres to [Semantic Versioning](http://semver.org/).
 ### Added
 ### Changed
 ### Fixed
+- Fixed migration error: Specified key was too long; max key length is 767 bytes
 
 ## [0.8.0] - 2017-03-03
 - Major restructuring to upgrade to Laravel 5.4 and be more dynamically available
