@@ -4,13 +4,14 @@ namespace DreamFactory\Core\ADLdap\Models;
 use DreamFactory\Core\Components\AppRoleMapper;
 use DreamFactory\Core\Components\RequireExtensions;
 use DreamFactory\Core\Models\BaseServiceConfigModel;
-use DreamFactory\Core\Exceptions\BadRequestException;
 use DreamFactory\Core\Models\Role;
-use DreamFactory\Core\Models\AppRoleMap;
 
 class LDAPConfig extends BaseServiceConfigModel
 {
-    use RequireExtensions, AppRoleMapper;
+    use RequireExtensions;
+    use AppRoleMapper {
+        getConfigSchema as public getConfigSchemaMapper;
+    }
 
     protected $table = 'ldap_config';
 
@@ -26,21 +27,16 @@ class LDAPConfig extends BaseServiceConfigModel
 
     protected $casts = ['service_id' => 'integer', 'default_role' => 'integer'];
 
-    public static function validateConfig($config, $create = true)
+    protected $rules = [
+        'host'    => 'required',
+        'base_dn' => 'required'
+    ];
+
+    public function validate($data, $throwException = true)
     {
         static::checkExtensions(['ldap']);
 
-        $validator = static::makeValidator($config, [
-            'host'    => 'required',
-            'base_dn' => 'required'
-        ], $create);
-
-        if ($validator->fails()) {
-            $messages = $validator->messages()->getMessages();
-            throw new BadRequestException('Validation failed.', null, null, $messages);
-        }
-
-        return true;
+        return parent::validate($data, $throwException);
     }
 
     /**
@@ -48,9 +44,9 @@ class LDAPConfig extends BaseServiceConfigModel
      */
     public static function getConfigSchema()
     {
-        $schema = parent::getConfigSchema();
-        $appRoleMap = AppRoleMap::getConfigSchema();
-        array_splice($schema, 1, 0, [$appRoleMap]);
+        $schema = static::getConfigSchemaMapper();
+        $map = array_pop($schema);
+        array_splice($schema, 1, 0, [$map]);
 
         return $schema;
     }
@@ -60,20 +56,20 @@ class LDAPConfig extends BaseServiceConfigModel
      */
     protected static function prepareConfigSchemaField(array &$schema)
     {
-        $roles = Role::whereIsActive(1)->get();
-        $roleList = [];
-
-        foreach ($roles as $role) {
-            $roleList[] = [
-                'label' => $role->name,
-                'name'  => $role->id
-            ];
-        }
-
         parent::prepareConfigSchemaField($schema);
 
         switch ($schema['name']) {
             case 'default_role':
+                $roles = Role::whereIsActive(1)->get();
+                $roleList = [];
+
+                foreach ($roles as $role) {
+                    $roleList[] = [
+                        'label' => $role->name,
+                        'name'  => $role->id
+                    ];
+                }
+
                 $schema['type'] = 'picklist';
                 $schema['values'] = $roleList;
                 $schema['description'] = 'Select a default role for users logging in with this AD/LDAP service type.';

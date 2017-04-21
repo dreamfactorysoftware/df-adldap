@@ -3,9 +3,10 @@ All notable changes to this project will be documented in this file.
 This project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [Unreleased]
+
+## [0.9.0] - 2017-04-21
 ### Added
-### Changed
-### Fixed
+- DF-895 Added support for username based authentication
 
 ## [0.8.1] - 2017-03-06
 - Fixed migration error: Specified key was too long; max key length is 767 bytes
@@ -83,7 +84,8 @@ This project adheres to [Semantic Versioning](http://semver.org/).
 ## 0.1.0 - 2015-10-24
 First official release working with the new [dreamfactory](https://github.com/dreamfactorysoftware/dreamfactory) project.
 
-[Unreleased]: https://github.com/dreamfactorysoftware/df-adldap/compare/0.8.1...HEAD
+[Unreleased]: https://github.com/dreamfactorysoftware/df-adldap/compare/0.9.0...HEAD
+[0.9.0]: https://github.com/dreamfactorysoftware/df-adldap/compare/0.8.1...0.9.0
 [0.8.1]: https://github.com/dreamfactorysoftware/df-adldap/compare/0.8.0...0.8.1
 [0.8.0]: https://github.com/dreamfactorysoftware/df-adldap/compare/0.7.0...0.8.0
 [0.7.0]: https://github.com/dreamfactorysoftware/df-adldap/compare/0.6.0...0.7.0
