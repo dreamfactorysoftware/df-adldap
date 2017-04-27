@@ -8,7 +8,7 @@ use DreamFactory\Core\Exceptions\BadRequestException;
 use DreamFactory\Core\Exceptions\RestException;
 use DreamFactory\Core\Utility\ResourcesWrapper;
 use DreamFactory\Core\ADLdap\Services\ADLdap;
-use DreamFactory\Library\Utility\Enums\Verbs;
+use DreamFactory\Core\Enums\Verbs;
 use Illuminate\Console\Command;
 use ServiceManager;
 

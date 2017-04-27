@@ -6,7 +6,7 @@ use DreamFactory\Core\Components\RequireExtensions;
 use DreamFactory\Core\Exceptions\UnauthorizedException;
 use DreamFactory\Core\Models\User;
 use DreamFactory\Core\Services\BaseRestService;
-use DreamFactory\Library\Utility\Enums\Verbs;
+use DreamFactory\Core\Enums\Verbs;
 use DreamFactory\Core\ADLdap\Contracts\Provider as ADLdapProvider;
 use DreamFactory\Core\Utility\Session;
 use DreamFactory\Core\ADLdap\Contracts\User as LdapUserContract;

@@ -8,7 +8,6 @@ use DreamFactory\Core\ADLdap\Resources\Group;
 use DreamFactory\Core\ADLdap\Resources\User;
 use DreamFactory\Core\Exceptions\BadRequestException;
 use DreamFactory\Core\Exceptions\UnauthorizedException;
-use DreamFactory\Library\Utility\ArrayUtils;
 use DreamFactory\Core\Exceptions\InternalServerErrorException;
 use DreamFactory\Core\Utility\Session;
 
@@ -88,7 +87,7 @@ class ADLdap extends LDAP
         if (array_get($this->config, 'map_group_to_role', false)) {
             $groups = $this->driver->getGroups();
             if (!empty($groups)) {
-                $primaryGroup = ArrayUtils::findByKeyValue($groups, 'primary', true);
+                $primaryGroup = array_by_key_value($groups, 'primary', true);
                 $role = $this->findRoleByGroup($primaryGroup);
 
                 if (!empty($role)) {
