@@ -1,4 +1,5 @@
 <?php
+
 namespace DreamFactory\Core\ADLdap\Components;
 
 class ADUser extends LdapUser
@@ -92,5 +93,13 @@ class ADUser extends LdapUser
         }
 
         return $result;
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    public function getUsername()
+    {
+        return $this->getSamAccountname();
     }
 }

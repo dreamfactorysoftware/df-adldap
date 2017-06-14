@@ -1,4 +1,5 @@
 <?php
+
 namespace DreamFactory\Core\ADLdap\Services;
 
 use DreamFactory\Core\ADLdap\Components\OpenLdap;
@@ -44,7 +45,7 @@ class LDAP extends BaseRestService
     {
         $settings = (array)$settings;
         $settings['verbAliases'] = [
-            Verbs::PUT   => Verbs::POST,
+            Verbs::PUT => Verbs::POST,
         ];
         parent::__construct($settings);
 
@@ -179,20 +180,23 @@ class LDAP extends BaseRestService
 
         if (empty($user)) {
             $data = [
-                'name'       => $ldapUser->getName(),
-                'username'   => $ldapUser->getSamAccountname() . '+' . $serviceName,
-                'first_name' => $ldapUser->getFirstName(),
-                'last_name'  => $ldapUser->getLastName(),
-                'email'      => $email,
-                'is_active'  => true,
-                'adldap'     => $this->getProviderName(),
-                'password'   => $ldapUser->getPassword()
+                'name'          => $ldapUser->getName(),
+                'username'      => $ldapUser->getUsername() . '+' . $serviceName,
+                'ldap_username' => $ldapUser->getUsername(),
+                'first_name'    => $ldapUser->getFirstName(),
+                'last_name'     => $ldapUser->getLastName(),
+                'email'         => $email,
+                'is_active'     => true,
+                'adldap'        => $this->getProviderName(),
+                'password'      => $ldapUser->getPassword()
             ];
 
             $user = User::create($data);
-        } else if (empty($user->username)) {
-            $user->username = $ldapUser->getSamAccountname() . '+' . $serviceName;
+        } else {
+            $user->username = $ldapUser->getUsername() . '+' . $serviceName;
+            $user->ldap_username = $ldapUser->getUsername();
             $user->update();
+            $user = User::whereEmail($email)->first();
         }
 
         if (!empty($defaultRole = $this->getRole())) {
