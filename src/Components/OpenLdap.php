@@ -1,4 +1,5 @@
 <?php
+
 namespace DreamFactory\Core\ADLdap\Components;
 
 use DreamFactory\Core\ADLdap\Contracts\Provider;
@@ -117,19 +118,28 @@ class OpenLdap implements Provider
     public function getObjectByDn($dn, $attributes = [])
     {
         $cookie = '';
+        $search = false;
+        $result = false;
         $out = ['count' => 0];
 
         do {
-            ldap_control_paged_result($this->connection, $this->pageSize, true, $cookie);
+            try {
+                ldap_control_paged_result($this->connection, $this->pageSize, true, $cookie);
 
-            $search = ldap_read($this->connection, $dn, "(objectclass=*)", $attributes);
-            $result = ldap_get_entries($this->connection, $search);
+                $search = ldap_read($this->connection, $dn, "(objectclass=*)", $attributes);
+                $result = ldap_get_entries($this->connection, $search);
 
-            $out['count'] += $result['count'];
-            array_shift($result);
-            $out = array_merge($out, $result);
+                $out['count'] += $result['count'];
+                array_shift($result);
+                $out = array_merge($out, $result);
 
-            ldap_control_paged_result_response($this->connection, $search, $cookie);
+                ldap_control_paged_result_response($this->connection, $search, $cookie);
+            } catch (\ErrorException $e) {
+                if (false === $search || false === $result) {
+                    throw $e;
+                }
+                $cookie = '';
+            }
         } while ($cookie !== null && $cookie != '');
 
         if (isset($out[0])) {
@@ -238,6 +248,7 @@ class OpenLdap implements Provider
      * @param string $baseDn
      *
      * @return array
+     * @throws \ErrorException;
      */
     public function search($filter, array $attributes = [], $baseDn = null)
     {
@@ -245,19 +256,28 @@ class OpenLdap implements Provider
         $connection = $this->connection;
 
         $cookie = '';
+        $search = false;
+        $result = false;
         $out = ['count' => 0];
 
         do {
-            ldap_control_paged_result($connection, $this->pageSize, true, $cookie);
+            try {
+                ldap_control_paged_result($connection, $this->pageSize, true, $cookie);
 
-            $search = ldap_search($connection, $baseDn, $filter, $attributes);
-            $result = ldap_get_entries($connection, $search);
+                $search = ldap_search($connection, $baseDn, $filter, $attributes);
+                $result = ldap_get_entries($connection, $search);
 
-            $out['count'] += $result['count'];
-            array_shift($result);
-            $out = array_merge($out, $result);
+                $out['count'] += $result['count'];
+                array_shift($result);
+                $out = array_merge($out, $result);
 
-            ldap_control_paged_result_response($connection, $search, $cookie);
+                ldap_control_paged_result_response($connection, $search, $cookie);
+            } catch (\ErrorException $e) {
+                if (false === $search || false === $result) {
+                    throw $e;
+                }
+                $cookie = '';
+            }
         } while ($cookie !== null && $cookie != '');
 
         return $out;
