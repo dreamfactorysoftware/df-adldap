@@ -7,6 +7,7 @@ This project adheres to [Semantic Versioning](http://semver.org/).
 - DF-1142 Added ldap_username field to user table. Added DF_JWT_USER_CLAIM env option to include user attribute in JWT
 ### Fixed
 - DF-1141 Ignored fetching object by DN from child domain.
+- DF-1169 Fixed ldap login when uid field (username) is blank.
 
 ## [0.10.0] - 2017-06-05
 ### Changed

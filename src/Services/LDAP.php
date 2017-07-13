@@ -176,12 +176,18 @@ class LDAP extends BaseRestService
         }
 
         $email = filter_var($email, FILTER_SANITIZE_EMAIL);
+        $ldapUsername = $ldapUser->getUsername();
+        if (empty($ldapUsername)) {
+            $ldapUsername = $email;
+        } else {
+            $ldapUsername .= '+' . $serviceName;
+        }
         $user = User::whereEmail($email)->first();
 
         if (empty($user)) {
             $data = [
                 'name'          => $ldapUser->getName(),
-                'username'      => $ldapUser->getUsername() . '+' . $serviceName,
+                'username'      => $ldapUsername,
                 'ldap_username' => $ldapUser->getUsername(),
                 'first_name'    => $ldapUser->getFirstName(),
                 'last_name'     => $ldapUser->getLastName(),
@@ -193,7 +199,7 @@ class LDAP extends BaseRestService
 
             $user = User::create($data);
         } else {
-            $user->username = $ldapUser->getUsername() . '+' . $serviceName;
+            $user->username = $ldapUsername;
             $user->ldap_username = $ldapUser->getUsername();
             $user->update();
             $user = User::whereEmail($email)->first();
