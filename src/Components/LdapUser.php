@@ -1,4 +1,5 @@
 <?php
+
 namespace DreamFactory\Core\ADLdap\Components;
 
 use DreamFactory\Core\ADLdap\Contracts\User as LdapUserContract;
@@ -27,6 +28,14 @@ class LdapUser extends BaseObject implements LdapUserContract
     public function getUid()
     {
         return array_get($this->data, 'uid');
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    public function getUsername()
+    {
+        return $this->getUid();
     }
 
     /**

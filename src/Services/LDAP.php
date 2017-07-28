@@ -1,4 +1,5 @@
 <?php
+
 namespace DreamFactory\Core\ADLdap\Services;
 
 use DreamFactory\Core\ADLdap\Components\OpenLdap;
@@ -44,7 +45,7 @@ class LDAP extends BaseRestService
     {
         $settings = (array)$settings;
         $settings['verbAliases'] = [
-            Verbs::PUT   => Verbs::POST,
+            Verbs::PUT => Verbs::POST,
         ];
         parent::__construct($settings);
 
@@ -175,24 +176,33 @@ class LDAP extends BaseRestService
         }
 
         $email = filter_var($email, FILTER_SANITIZE_EMAIL);
+        $ldapUsername = $ldapUser->getUsername();
+        if (empty($ldapUsername)) {
+            $ldapUsername = $email;
+        } else {
+            $ldapUsername .= '+' . $serviceName;
+        }
         $user = User::whereEmail($email)->first();
 
         if (empty($user)) {
             $data = [
-                'name'       => $ldapUser->getName(),
-                'username'   => $ldapUser->getSamAccountname() . '+' . $serviceName,
-                'first_name' => $ldapUser->getFirstName(),
-                'last_name'  => $ldapUser->getLastName(),
-                'email'      => $email,
-                'is_active'  => true,
-                'adldap'     => $this->getProviderName(),
-                'password'   => $ldapUser->getPassword()
+                'name'          => $ldapUser->getName(),
+                'username'      => $ldapUsername,
+                'ldap_username' => $ldapUser->getUsername(),
+                'first_name'    => $ldapUser->getFirstName(),
+                'last_name'     => $ldapUser->getLastName(),
+                'email'         => $email,
+                'is_active'     => true,
+                'adldap'        => $this->getProviderName(),
+                'password'      => $ldapUser->getPassword()
             ];
 
             $user = User::create($data);
-        } else if (empty($user->username)) {
-            $user->username = $ldapUser->getSamAccountname() . '+' . $serviceName;
+        } else {
+            $user->username = $ldapUsername;
+            $user->ldap_username = $ldapUser->getUsername();
             $user->update();
+            $user = User::whereEmail($email)->first();
         }
 
         if (!empty($defaultRole = $this->getRole())) {

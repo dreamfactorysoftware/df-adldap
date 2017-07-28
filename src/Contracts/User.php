@@ -1,4 +1,5 @@
 <?php
+
 namespace DreamFactory\Core\ADLdap\Contracts;
 
 interface User
@@ -58,4 +59,11 @@ interface User
      * @return string
      */
     public function getPassword();
+
+    /**
+     * Gets the username.
+     *
+     * @return string
+     */
+    public function getUsername();
 }

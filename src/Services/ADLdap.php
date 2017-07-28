@@ -1,4 +1,5 @@
 <?php
+
 namespace DreamFactory\Core\ADLdap\Services;
 
 use DreamFactory\Core\ADLdap\Components\ADGroup;
@@ -8,8 +9,6 @@ use DreamFactory\Core\ADLdap\Resources\Group;
 use DreamFactory\Core\ADLdap\Resources\User;
 use DreamFactory\Core\Exceptions\BadRequestException;
 use DreamFactory\Core\Exceptions\UnauthorizedException;
-use DreamFactory\Core\Exceptions\InternalServerErrorException;
-use DreamFactory\Core\Utility\Session;
 
 class ADLdap extends LDAP
 {
@@ -142,38 +141,5 @@ class ADLdap extends LDAP
         }
 
         return null;
-    }
-
-    /** @inheritdoc */
-    public static function getApiDocInfo($service)
-    {
-        $base = parent::getApiDocInfo($service);
-
-        $apis = [];
-        $models = [];
-        foreach (static::$resources as $resourceInfo) {
-            $resourceClass = array_get($resourceInfo, 'class_name');
-
-            if (!class_exists($resourceClass)) {
-                throw new InternalServerErrorException('Service configuration class name lookup failed for resource ' .
-                    $resourceClass);
-            }
-
-            $resourceName = array_get($resourceInfo, static::RESOURCE_IDENTIFIER);
-            if (Session::checkForAnyServicePermissions($service->name, $resourceName)) {
-                $results = $resourceClass::getApiDocInfo($service->name, $resourceInfo);
-                if (isset($results, $results['paths'])) {
-                    $apis = array_merge($apis, $results['paths']);
-                }
-                if (isset($results, $results['definitions'])) {
-                    $models = array_merge($models, $results['definitions']);
-                }
-            }
-        }
-
-        $base['paths'] = array_merge($base['paths'], $apis);
-        $base['definitions'] = array_merge($base['definitions'], $models);
-
-        return $base;
     }
 }

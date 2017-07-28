@@ -4,6 +4,13 @@ This project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [Unreleased]
 
+## [0.11.0] - 2017-07-27
+### Added
+- DF-1142 Added ldap_username field to user table. Added DF_JWT_USER_CLAIM env option to include user attribute in JWT
+### Fixed
+- DF-1141 Ignored fetching object by DN from child domain.
+- DF-1169 Fixed ldap login when uid field (username) is blank.
+
 ## [0.10.0] - 2017-06-05
 ### Changed
 - Cleanup - removal of php-utils dependency
@@ -88,7 +95,8 @@ This project adheres to [Semantic Versioning](http://semver.org/).
 ## 0.1.0 - 2015-10-24
 First official release working with the new [dreamfactory](https://github.com/dreamfactorysoftware/dreamfactory) project.
 
-[Unreleased]: https://github.com/dreamfactorysoftware/df-adldap/compare/0.10.0...HEAD
+[Unreleased]: https://github.com/dreamfactorysoftware/df-adldap/compare/0.11.0...HEAD
+[0.11.0]: https://github.com/dreamfactorysoftware/df-adldap/compare/0.10.0...0.11.0
 [0.10.0]: https://github.com/dreamfactorysoftware/df-adldap/compare/0.9.0...0.10.0
 [0.9.0]: https://github.com/dreamfactorysoftware/df-adldap/compare/0.8.1...0.9.0
 [0.8.1]: https://github.com/dreamfactorysoftware/df-adldap/compare/0.8.0...0.8.1
