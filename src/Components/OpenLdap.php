@@ -169,7 +169,7 @@ class OpenLdap implements Provider
             throw new NotFoundException('User not found by username [' . $username . ']');
         }
 
-        return $this->getUser($this->getObjectByDn($dn));
+        return new LdapUser($this->getObjectByDn($dn));
     }
 
     /**
