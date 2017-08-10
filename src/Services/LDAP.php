@@ -95,14 +95,6 @@ class LDAP extends BaseRestService
     }
 
     /**
-     * @return string
-     */
-    public function getName()
-    {
-        return $this->name;
-    }
-
-    /**
      * @return string|null
      */
     public function getHost()
