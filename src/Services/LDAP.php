@@ -174,33 +174,52 @@ class LDAP extends BaseRestService
         } else {
             $ldapUsername .= '+' . $serviceName;
         }
+
+        $data = [
+            'name'          => $ldapUser->getName(),
+            'username'      => $ldapUsername,
+            'ldap_username' => $ldapUser->getUsername(),
+            'first_name'    => $ldapUser->getFirstName(),
+            'last_name'     => $ldapUser->getLastName(),
+            'email'         => $email,
+            'is_active'     => true,
+            'adldap'        => $this->getProviderName(),
+            'password'      => $ldapUser->getPassword()
+        ];
+        $roleId = $this->getRole();
+        $serviceId = $this->getServiceId();
+
+        return static::setShadowUser($data, $roleId, $serviceId);
+    }
+
+    /**
+     * Creates or updates shadow user upon successful login.
+     *
+     * @param array $data
+     * @param null  $roleId
+     * @param null  $serviceId
+     *
+     * @return User
+     */
+    protected static function setShadowUser(array $data, $roleId = null, $serviceId = null)
+    {
+        $email = array_get($data, 'email');
+        /** @var User $user */
         $user = User::whereEmail($email)->first();
 
         if (empty($user)) {
-            $data = [
-                'name'          => $ldapUser->getName(),
-                'username'      => $ldapUsername,
-                'ldap_username' => $ldapUser->getUsername(),
-                'first_name'    => $ldapUser->getFirstName(),
-                'last_name'     => $ldapUser->getLastName(),
-                'email'         => $email,
-                'is_active'     => true,
-                'adldap'        => $this->getProviderName(),
-                'password'      => $ldapUser->getPassword()
-            ];
-
             $user = User::create($data);
         } else {
-            $user->username = $ldapUsername;
-            $user->ldap_username = $ldapUser->getUsername();
+            $user->username = array_get($data, 'username');
+            $user->ldap_username = array_get($data, 'ldap_username');
             $user->update();
             $user = User::whereEmail($email)->first();
         }
 
-        if (!empty($defaultRole = $this->getRole())) {
-            User::applyDefaultUserAppRole($user, $defaultRole);
+        if (!empty($roleId)) {
+            User::applyDefaultUserAppRole($user, $roleId);
         }
-        if (!empty($serviceId = $this->getServiceId())) {
+        if (!empty($serviceId)) {
             User::applyAppRoleMapByService($user, $serviceId);
         }
 

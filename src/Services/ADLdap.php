@@ -8,7 +8,10 @@ use DreamFactory\Core\ADLdap\Resources\Computer;
 use DreamFactory\Core\ADLdap\Resources\Group;
 use DreamFactory\Core\ADLdap\Resources\User;
 use DreamFactory\Core\Exceptions\BadRequestException;
+use DreamFactory\Core\Exceptions\InternalServerErrorException;
 use DreamFactory\Core\Exceptions\UnauthorizedException;
+use DreamFactory\Core\Utility\Session;
+use Carbon\Carbon;
 
 class ADLdap extends LDAP
 {
@@ -141,5 +144,40 @@ class ADLdap extends LDAP
         }
 
         return null;
+    }
+
+    /**
+     * @param string $authUser
+     * @param bool   $remember
+     *
+     * @return array
+     * @throws \DreamFactory\Core\Exceptions\InternalServerErrorException
+     */
+    public function handleWindowsAuth($authUser, $remember = false)
+    {
+        if (empty($authUser)) {
+            throw new InternalServerErrorException('No username provided to perform windows authentication.');
+        }
+        $userInfo = explode("\\", $authUser);
+        if (isset($userInfo[1])) {
+            $username = trim($userInfo[1], "\\");
+        } else {
+            $username = trim($userInfo[0], "\\");
+        }
+
+        try {
+            $adUser = $this->driver->getUserByUserName($username);
+        } catch (\Exception $e) {
+            $this->authenticateAdminUser();
+            $adUser = $this->driver->getUserByUserName($username);
+        }
+
+        $user = $this->createShadowADLdapUser($adUser);
+        $user->last_login_date = Carbon::now()->toDateTimeString();
+        $user->confirm_code = null;
+        $user->save();
+        Session::setUserInfoWithJWT($user, $remember);
+
+        return Session::getPublicInfo();
     }
 }
