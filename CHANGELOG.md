@@ -3,7 +3,10 @@ All notable changes to this project will be documented in this file.
 This project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [Unreleased]
-- DF-1131 Added support for AD SSO and SQLServer windows authentication
+
+## [0.12.1] - 2017-09-18
+### Added
+- DF-1131 Support for AD SSO and SQLServer windows authentication
 
 ## [0.12.0] - 2017-08-17
 ### Changed
@@ -13,8 +16,8 @@ This project adheres to [Semantic Versioning](http://semver.org/).
 ### Added
 - DF-1142 Added ldap_username field to user table. Added DF_JWT_USER_CLAIM env option to include user attribute in JWT
 ### Fixed
-- DF-1141 Ignored fetching object by DN from child domain.
-- DF-1169 Fixed ldap login when uid field (username) is blank.
+- DF-1141 Ignored fetching object by DN from child domain
+- DF-1169 Fixed ldap login when uid field (username) is blank
 
 ## [0.10.0] - 2017-06-05
 ### Changed
@@ -54,10 +57,10 @@ This project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [0.3.1] - 2016-07-08
 ### Added
-- DF-752 Added support for AD group hierarchy when mapping DreamFactory role to AD group.
+- DF-752 Support for AD group hierarchy when mapping DreamFactory role to AD group
 
 ### Changed
-- General cleanup from declaration changes in df-core.
+- General cleanup from declaration changes in df-core
 
 ## [0.3.0] - 2016-05-27
 ### Changed
@@ -76,31 +79,32 @@ This project adheres to [Semantic Versioning](http://semver.org/).
 ## [0.2.0]
 ### Added
 - Added filtering on all resources.
-- Added --filter option to dreamfactory:ad-group-import utility.
+- Added --filter option to dreamfactory:ad-group-import utility
 
 ### Changed
 - Changed swagger definition to work with Swagger 2.0
 
 ### Fixed
-- Fixed issue with exceeding MaxPageSize by utilizing pagination.
+- Fixed issue with exceeding MaxPageSize by utilizing pagination
 
 ## [0.1.2] - 2015-12-19
 ### Added
 - New 'computer' resource.
 
 ### Fixed
-- Fixed primary key for role_adldap table model.
+- Fixed primary key for role_adldap table model
 
 ## [0.1.1] - 2015-11-24
 ### Added
-- New artisan console command dreamfactory:ad-group-import to import AD groups and DF role.
-- Mapping a DF role to AD group.
-- New 'group' and 'user' resource.
+- New artisan console command dreamfactory:ad-group-import to import AD groups and DF role
+- Mapping a DF role to AD group
+- New 'group' and 'user' resource
 
 ## 0.1.0 - 2015-10-24
 First official release working with the new [dreamfactory](https://github.com/dreamfactorysoftware/dreamfactory) project.
 
-[Unreleased]: https://github.com/dreamfactorysoftware/df-adldap/compare/0.12.0...HEAD
+[Unreleased]: https://github.com/dreamfactorysoftware/df-adldap/compare/0.12.1...HEAD
+[0.12.1]: https://github.com/dreamfactorysoftware/df-adldap/compare/0.12.0...0.12.1
 [0.12.0]: https://github.com/dreamfactorysoftware/df-adldap/compare/0.11.0...0.12.0
 [0.11.0]: https://github.com/dreamfactorysoftware/df-adldap/compare/0.10.0...0.11.0
 [0.10.0]: https://github.com/dreamfactorysoftware/df-adldap/compare/0.9.0...0.10.0
