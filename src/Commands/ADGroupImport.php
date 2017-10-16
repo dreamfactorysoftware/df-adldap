@@ -83,11 +83,7 @@ class ADGroupImport extends Command
                         'name'                   => static::dnToRoleName($group['dn']),
                         'description'            => $group['description'],
                         'is_active'              => true,
-                        'role_adldap_by_role_id' => [
-                            [
-                                'dn' => $group['dn']
-                            ]
-                        ]
+                        'role_adldap_by_role_id' => ['dn' => $group['dn']]
                     ];
 
                     $this->info('|--------------------------------------------------------------------');
