@@ -4,6 +4,10 @@ This project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [Unreleased]
 
+## [0.12.2] - 2017-10-16
+### Fixed
+- Hotfix - Fixed AD group import issue.
+
 ## [0.12.1] - 2017-09-18
 ### Added
 - DF-1131 Support for AD SSO and SQLServer windows authentication
@@ -103,7 +107,8 @@ This project adheres to [Semantic Versioning](http://semver.org/).
 ## 0.1.0 - 2015-10-24
 First official release working with the new [dreamfactory](https://github.com/dreamfactorysoftware/dreamfactory) project.
 
-[Unreleased]: https://github.com/dreamfactorysoftware/df-adldap/compare/0.12.1...HEAD
+[Unreleased]: https://github.com/dreamfactorysoftware/df-adldap/compare/0.12.2...HEAD
+[0.12.2]: https://github.com/dreamfactorysoftware/df-adldap/compare/0.12.1...0.12.2
 [0.12.1]: https://github.com/dreamfactorysoftware/df-adldap/compare/0.12.0...0.12.1
 [0.12.0]: https://github.com/dreamfactorysoftware/df-adldap/compare/0.11.0...0.12.0
 [0.11.0]: https://github.com/dreamfactorysoftware/df-adldap/compare/0.10.0...0.11.0
