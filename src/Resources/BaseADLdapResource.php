@@ -19,82 +19,65 @@ class BaseADLdapResource extends BaseRestResource
         return static::RESOURCE_IDENTIFIER;
     }
 
-    public static function getApiDocInfo($service, array $resource = [])
+    protected function getApiDocPaths()
     {
-        $serviceName = strtolower($service);
+        $service = $this->getServiceName();
         $capitalized = camelize($service);
         $class = trim(strrchr(static::class, '\\'), '\\');
-        $resourceName = strtolower(array_get($resource, 'name', $class));
+        $resourceName = strtolower($this->name);
         $pluralClass = str_plural($class);
-        $path = '/' . $serviceName . '/' . $resourceName;
-        $wrapper = ResourcesWrapper::getWrapper();
+        $path = '/' . $resourceName;
 
-        $apis = [
+        return [
             $path                                        => [
                 'get' => [
-                    'tags'              => [$serviceName],
-                    'summary'           => 'get' .
-                        $capitalized .
-                        $pluralClass .
-                        '() - Retrieve one or more ' .
-                        $pluralClass .
-                        '.',
-                    'operationId'       => 'get' . $capitalized . $pluralClass,
-                    'consumes'          => ['application/json', 'application/xml', 'text/csv'],
-                    'produces'          => ['application/json', 'application/xml', 'text/csv'],
-                    'parameters'        => [
+                    'summary'     => 'get' . $capitalized . $pluralClass . '() - Retrieve one or more ' . $pluralClass . '.',
+                    'operationId' => 'get' . $capitalized . $pluralClass,
+                    'parameters'  => [
                         ApiOptions::documentOption(ApiOptions::FIELDS),
                         [
                             'name'        => ApiOptions::FILTER,
-                            'type'        => 'string',
+                            'schema'      => ['type' => 'string'],
                             'in'          => 'query',
                             'description' => 'LDAP Query like filter to limit the records to retrieve.'
                         ],
                     ],
-                    'responses'         => [
-                        '200'     => [
-                            'description' => 'Response',
-                            'schema'      => ['$ref' => '#/definitions/' . $pluralClass . 'Response']
-                        ],
-                        'default' => [
-                            'description' => 'Error',
-                            'schema'      => ['$ref' => '#/definitions/Error']
-                        ]
+                    'responses'   => [
+                        '200' => ['$ref' => '#/components/responses/' . $pluralClass . 'Response']
                     ],
-                    'description'       => 'List Active Directory ' . strtolower($pluralClass)
+                    'description' => 'List Active Directory ' . strtolower($pluralClass)
                 ],
             ],
             $path . '/{' . strtolower($class) . '_name}' => [
                 'get' => [
-                    'tags'              => [$serviceName],
-                    'summary'           => 'get' . $capitalized . $class . '() - Retrieve one ' . $class . '.',
-                    'operationId'       => 'get' . $capitalized . $class,
-                    'parameters'        => [
+                    'summary'     => 'get' . $capitalized . $class . '() - Retrieve one ' . $class . '.',
+                    'operationId' => 'get' . $capitalized . $class,
+                    'parameters'  => [
                         [
                             'name'        => strtolower($class) . '_name',
                             'description' => 'Identifier of the record to retrieve.',
-                            'type'        => 'string',
+                            'schema'      => ['type' => 'string'],
                             'in'          => 'path',
                             'required'    => true,
                         ],
                         ApiOptions::documentOption(ApiOptions::FIELDS),
                     ],
-                    'responses'         => [
-                        '200'     => [
-                            'description' => 'AD/LDAP Response',
-                            'schema'      => ['$ref' => '#/definitions/' . $class . 'Response']
-                        ],
-                        'default' => [
-                            'description' => 'Error',
-                            'schema'      => ['$ref' => '#/definitions/Error']
-                        ]
+                    'responses'   => [
+                        '200' => ['$ref' => '#/components/responses/' . $class . 'Response']
                     ],
-                    'description'       => 'Use the \'fields\' parameter to limit properties that are returned. By default, all fields are returned.',
+                    'description' => 'Use the \'fields\' parameter to limit properties that are returned. By default, all fields are returned.',
                 ],
             ],
         ];
+    }
 
-        $models = [
+    protected function getApiDocSchemas()
+    {
+        $class = trim(strrchr(static::class, '\\'), '\\');
+        $pluralClass = str_plural($class);
+        $wrapper = ResourcesWrapper::getWrapper();
+
+        return [
             $class . 'Response'       => [
                 'type'       => 'object',
                 'properties' => [
@@ -127,7 +110,7 @@ class BaseADLdapResource extends BaseRestResource
                     ],
                     'objectcategory'    => [
                         'type'        => 'string',
-                        'description' => 'Shows objectCagetory attribute.'
+                        'description' => 'Shows objectCategory attribute.'
                     ]
                 ],
             ],
@@ -138,13 +121,11 @@ class BaseADLdapResource extends BaseRestResource
                         'type'        => 'array',
                         'description' => 'Array of records.',
                         'items'       => [
-                            '$ref' => '#/definitions/' . $class . 'Response',
+                            '$ref' => '#/components/schemas/' . $class . 'Response',
                         ],
                     ]
                 ],
             ],
         ];
-
-        return ['paths' => $apis, 'definitions' => $models];
     }
 }

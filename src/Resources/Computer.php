@@ -56,12 +56,12 @@ class Computer extends BaseADLdapResource
         return ResourcesWrapper::cleanResources($resources);
     }
 
-    public static function getApiDocInfo($service, array $resource = [])
+    protected function getApiDocSchemas()
     {
-        $base = parent::getApiDocInfo($service, $resource);
+        $base = parent::getApiDocSchemas();
 
-        $base['definitions']['ComputerResponse']['properties'] =
-            array_merge($base['definitions']['ComputerResponse']['properties'], [
+        $base['ComputerResponse']['properties'] =
+            array_merge($base['ComputerResponse']['properties'], [
                 'name'                       => [
                     'type'        => 'string',
                     'description' => 'Computer name'
