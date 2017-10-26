@@ -1,4 +1,5 @@
 <?php
+
 namespace DreamFactory\Core\ADLdap;
 
 use DreamFactory\Core\ADLdap\Commands\ADGroupImport;
@@ -7,6 +8,7 @@ use DreamFactory\Core\ADLdap\Models\LDAPConfig;
 use DreamFactory\Core\ADLdap\Models\RoleADLdap;
 use DreamFactory\Core\ADLdap\Services\ADLdap;
 use DreamFactory\Core\ADLdap\Services\LDAP;
+use DreamFactory\Core\Enums\LicenseLevel;
 use DreamFactory\Core\Enums\ServiceTypeGroups;
 use DreamFactory\Core\Models\SystemTableModelMapper;
 use DreamFactory\Core\Services\ServiceManager;
@@ -20,24 +22,26 @@ class ServiceProvider extends \Illuminate\Support\ServiceProvider
         $this->app->resolving('df.service', function (ServiceManager $df) {
             $df->addType(
                 new ServiceType([
-                    'name'            => 'adldap',
-                    'label'           => 'Active Directory',
-                    'description'     => 'A service for supporting Active Directory integration',
-                    'group'           => ServiceTypeGroups::LDAP,
-                    'config_handler'  => ADConfig::class,
-                    'factory'         => function ($config) {
+                    'name'                  => 'adldap',
+                    'label'                 => 'Active Directory',
+                    'description'           => 'A service for supporting Active Directory integration',
+                    'group'                 => ServiceTypeGroups::LDAP,
+                    'subscription_required' => LicenseLevel::SILVER,
+                    'config_handler'        => ADConfig::class,
+                    'factory'               => function ($config) {
                         return new ADLdap($config);
                     }
                 ])
             );
             $df->addType(
                 new ServiceType([
-                    'name'            => 'ldap',
-                    'label'           => 'Standard LDAP',
-                    'description'     => 'A service for supporting Open LDAP integration',
-                    'group'           => ServiceTypeGroups::LDAP,
-                    'config_handler'  => LDAPConfig::class,
-                    'factory'         => function ($config) {
+                    'name'                  => 'ldap',
+                    'label'                 => 'Standard LDAP',
+                    'description'           => 'A service for supporting Open LDAP integration',
+                    'group'                 => ServiceTypeGroups::LDAP,
+                    'subscription_required' => LicenseLevel::SILVER,
+                    'config_handler'        => LDAPConfig::class,
+                    'factory'               => function ($config) {
                         return new LDAP($config);
                     }
                 ])
