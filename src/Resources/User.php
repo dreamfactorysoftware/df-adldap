@@ -61,8 +61,8 @@ class User extends BaseADLdapResource
     {
         $base = parent::getApiDocSchemas();
 
-        $base['UserResponse']['properties'] =
-            array_merge($base['UserResponse']['properties'], [
+        $base['User']['properties'] =
+            array_merge($base['User']['properties'], [
                 'sn'             => [
                     'type'        => 'string',
                     'description' => 'Surname of the user.'

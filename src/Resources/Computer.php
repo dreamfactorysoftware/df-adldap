@@ -60,8 +60,8 @@ class Computer extends BaseADLdapResource
     {
         $base = parent::getApiDocSchemas();
 
-        $base['ComputerResponse']['properties'] =
-            array_merge($base['ComputerResponse']['properties'], [
+        $base['Computer']['properties'] =
+            array_merge($base['Computer']['properties'], [
                 'name'                       => [
                     'type'        => 'string',
                     'description' => 'Computer name'

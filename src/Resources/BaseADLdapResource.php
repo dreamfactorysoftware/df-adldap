@@ -71,6 +71,37 @@ class BaseADLdapResource extends BaseRestResource
         ];
     }
 
+    protected function getApiDocResponses()
+    {
+        $class = trim(strrchr(static::class, '\\'), '\\');
+        $pluralClass = str_plural($class);
+
+        return [
+            $class . 'Response'       => [
+                'description' => $class . ' Response',
+                'content'     => [
+                    'application/json' => [
+                        'schema' => ['$ref' => '#/components/schemas/' . $class]
+                    ],
+                    'application/xml'  => [
+                        'schema' => ['$ref' => '#/components/schemas/' . $class]
+                    ],
+                ],
+            ],
+            $pluralClass . 'Response' => [
+                'description' => $pluralClass . ' Response',
+                'content'     => [
+                    'application/json' => [
+                        'schema' => ['$ref' => '#/components/schemas/' . $class]
+                    ],
+                    'application/xml'  => [
+                        'schema' => ['$ref' => '#/components/schemas/' . $class]
+                    ],
+                ],
+            ],
+        ];
+    }
+
     protected function getApiDocSchemas()
     {
         $class = trim(strrchr(static::class, '\\'), '\\');
@@ -78,12 +109,13 @@ class BaseADLdapResource extends BaseRestResource
         $wrapper = ResourcesWrapper::getWrapper();
 
         return [
-            $class . 'Response'       => [
+            $class       => [
                 'type'       => 'object',
                 'properties' => [
                     'objectclass'       => [
                         'type'        => 'array',
-                        'description' => 'This property identifies the class of which the object is an instance, as well as all structural or abstract superclasses from which that class is derived.',
+                        'description' => 'This property identifies the class of which the object is an instance, ' .
+                            'as well as all structural or abstract superclasses from which that class is derived.',
                         'items'       => [
                             'type' => 'string'
                         ]
@@ -114,14 +146,14 @@ class BaseADLdapResource extends BaseRestResource
                     ]
                 ],
             ],
-            $pluralClass . 'Response' => [
+            $pluralClass => [
                 'type'       => 'object',
                 'properties' => [
                     $wrapper => [
                         'type'        => 'array',
-                        'description' => 'Array of records.',
+                        'description' => 'Array of objects.',
                         'items'       => [
-                            '$ref' => '#/components/schemas/' . $class . 'Response',
+                            '$ref' => '#/components/schemas/' . $class,
                         ],
                     ]
                 ],

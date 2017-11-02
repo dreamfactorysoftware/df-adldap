@@ -85,8 +85,8 @@ class Group extends BaseADLdapResource
     protected function getApiDocSchemas()
     {
         $base = parent::getApiDocSchemas();
-        $base['GroupResponse']['properties'] =
-            array_merge($base['GroupResponse']['properties'], [
+        $base['Group']['properties'] =
+            array_merge($base['Group']['properties'], [
                 'member'      => [
                     'type'        => 'array',
                     'description' => 'Lists the member of the group.',
