@@ -31,7 +31,8 @@ class BaseADLdapResource extends BaseRestResource
         return [
             $path                                        => [
                 'get' => [
-                    'summary'     => 'get' . $capitalized . $pluralClass . '() - Retrieve one or more ' . $pluralClass . '.',
+                    'summary'     => 'Retrieve one or more ' . $pluralClass . '.',
+                    'description' => 'List Active Directory ' . strtolower($pluralClass),
                     'operationId' => 'get' . $capitalized . $pluralClass,
                     'parameters'  => [
                         ApiOptions::documentOption(ApiOptions::FIELDS),
@@ -45,12 +46,12 @@ class BaseADLdapResource extends BaseRestResource
                     'responses'   => [
                         '200' => ['$ref' => '#/components/responses/' . $pluralClass . 'Response']
                     ],
-                    'description' => 'List Active Directory ' . strtolower($pluralClass)
                 ],
             ],
             $path . '/{' . strtolower($class) . '_name}' => [
                 'get' => [
-                    'summary'     => 'get' . $capitalized . $class . '() - Retrieve one ' . $class . '.',
+                    'summary'     => 'Retrieve one ' . $class . '.',
+                    'description' => 'Use the \'fields\' parameter to limit properties that are returned. By default, all fields are returned.',
                     'operationId' => 'get' . $capitalized . $class,
                     'parameters'  => [
                         [
@@ -65,7 +66,6 @@ class BaseADLdapResource extends BaseRestResource
                     'responses'   => [
                         '200' => ['$ref' => '#/components/responses/' . $class . 'Response']
                     ],
-                    'description' => 'Use the \'fields\' parameter to limit properties that are returned. By default, all fields are returned.',
                 ],
             ],
         ];
