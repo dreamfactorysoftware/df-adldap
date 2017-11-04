@@ -4,9 +4,15 @@ This project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [Unreleased]
 
+## [0.13.0] - 2017-11-03
+### Changed
+- Added RBAC support for package export
+- Added subscription requirements to service provider
+- Upgrade Swagger to OpenAPI 3.0 specification
+
 ## [0.12.2] - 2017-10-16
 ### Fixed
-- Hotfix - Fixed AD group import issue.
+- Fixed AD group import issue after supporting has-one DB relationship
 
 ## [0.12.1] - 2017-09-18
 ### Added
@@ -107,7 +113,8 @@ This project adheres to [Semantic Versioning](http://semver.org/).
 ## 0.1.0 - 2015-10-24
 First official release working with the new [dreamfactory](https://github.com/dreamfactorysoftware/dreamfactory) project.
 
-[Unreleased]: https://github.com/dreamfactorysoftware/df-adldap/compare/0.12.2...HEAD
+[Unreleased]: https://github.com/dreamfactorysoftware/df-adldap/compare/0.13.0...HEAD
+[0.13.0]: https://github.com/dreamfactorysoftware/df-adldap/compare/0.12.2...0.13.0
 [0.12.2]: https://github.com/dreamfactorysoftware/df-adldap/compare/0.12.1...0.12.2
 [0.12.1]: https://github.com/dreamfactorysoftware/df-adldap/compare/0.12.0...0.12.1
 [0.12.0]: https://github.com/dreamfactorysoftware/df-adldap/compare/0.11.0...0.12.0
