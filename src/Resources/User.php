@@ -57,12 +57,12 @@ class User extends BaseADLdapResource
         return ResourcesWrapper::cleanResources($resources);
     }
 
-    public static function getApiDocInfo($service, array $resource = [])
+    protected function getApiDocSchemas()
     {
-        $base = parent::getApiDocInfo($service, $resource);
+        $base = parent::getApiDocSchemas();
 
-        $base['definitions']['UserResponse']['properties'] =
-            array_merge($base['definitions']['UserResponse']['properties'], [
+        $base['User']['properties'] =
+            array_merge($base['User']['properties'], [
                 'sn'             => [
                     'type'        => 'string',
                     'description' => 'Surname of the user.'

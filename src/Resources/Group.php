@@ -1,4 +1,5 @@
 <?php
+
 namespace DreamFactory\Core\ADLdap\Resources;
 
 use DreamFactory\Core\Contracts\RequestHandlerInterface;
@@ -49,39 +50,43 @@ class Group extends BaseADLdapResource
                 $attributes = ['samaccountname'];
             }
             $resources = $this->provider->getGroups($username, $attributes);
-        } else if (empty($groupName)) {
-            $asList = $this->request->getParameterAsBool(ApiOptions::AS_LIST);
-            if ($asList) {
-                $attributes = ['samaccountname'];
-            }
-            $resources = $this->provider->listGroup($attributes, $filter);
         } else {
-            $adGroup = $this->provider->getGroupByCn($groupName);
-            $resources = $adGroup->getData($attributes);
+            if (empty($groupName)) {
+                $asList = $this->request->getParameterAsBool(ApiOptions::AS_LIST);
+                if ($asList) {
+                    $attributes = ['samaccountname'];
+                }
+                $resources = $this->provider->listGroup($attributes, $filter);
+            } else {
+                $adGroup = $this->provider->getGroupByCn($groupName);
+                $resources = $adGroup->getData($attributes);
+            }
         }
 
         return ResourcesWrapper::cleanResources($resources);
     }
 
-    public static function getApiDocInfo($service, array $resource = [])
+    protected function getApiDocPaths()
     {
-        $base = parent::getApiDocInfo($service, $resource);
-        $serviceName = strtolower($service);
-        $class = trim(strrchr(static::class, '\\'), '\\');
-        $resourceName = strtolower(array_get($resource, 'name', $class));
-        $path = '/' . $serviceName . '/' . $resourceName;
+        $base = parent::getApiDocPaths();
+        $resourceName = strtolower($this->name);
+        $path = '/' . $resourceName;
 
-        $base['paths'][$path]['get']['parameters'][] = [
+        $base[$path]['get']['parameters'][] = [
             'name'        => 'user',
             'description' => 'Accepts an username to list groups by username.',
-            'type'        => 'string',
-            'format'      => 'int32',
+            'schema'      => ['type' => 'string', 'format' => 'int32'],
             'in'          => 'query',
-            'required'    => false,
         ];
 
-        $base['definitions']['GroupResponse']['properties'] =
-            array_merge($base['definitions']['GroupResponse']['properties'], [
+        return $base;
+    }
+
+    protected function getApiDocSchemas()
+    {
+        $base = parent::getApiDocSchemas();
+        $base['Group']['properties'] =
+            array_merge($base['Group']['properties'], [
                 'member'      => [
                     'type'        => 'array',
                     'description' => 'Lists the member of the group.',

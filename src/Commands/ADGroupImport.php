@@ -102,7 +102,7 @@ class ADGroupImport extends Command
                 if ($this->confirm('The above roles will be imported into your DreamFactory instance based on your Active Directory groups. Do you wish to continue?')) {
                     $this->line('Importing Roles...');
                     $payload = ResourcesWrapper::wrapResources($roles);
-                    $result = ServiceManager::handleRequest('system', Verbs::POST, 'role', ['continue' => true], [], $payload);
+                    $result = ServiceManager::handleRequest('system', Verbs::POST, 'role', ['continue' => true], [], $payload, null, false);
                     if ($result->getStatusCode() >= 300) {
                         $this->error(print_r($result->getContent(), true));
                     } else {
