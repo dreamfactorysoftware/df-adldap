@@ -3,6 +3,7 @@
 namespace DreamFactory\Core\ADLdap\Components;
 
 use DreamFactory\Core\ADLdap\Contracts\User as LdapUserContract;
+use Illuminate\Support\Facades\Hash;
 
 class LdapUser extends BaseObject implements LdapUserContract
 {
@@ -78,7 +79,7 @@ class LdapUser extends BaseObject implements LdapUserContract
         $password = array_get($this->data, 'userpassword');
         $password .= $this->getDn();
         $password .= time();
-        $password = bcrypt($password);
+        $password = Hash::make($password);
 
         return $password;
     }
