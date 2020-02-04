@@ -54,6 +54,6 @@ class CreateAdldapTables extends Migration
             );
         }
 
-        Schema::dropIfExists('adldap_config');
+        Schema::dropIfExists('ldap_config');
     }
 }
