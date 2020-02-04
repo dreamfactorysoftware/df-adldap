@@ -46,6 +46,8 @@ class AdEnhancements extends Migration
      */
     public function down()
     {
+        Schema::dropIfExists('role_adldap');
+
         if (Schema::hasColumn('ldap_config', 'map_group_to_role')) {
             Schema::table(
                 'ldap_config',
@@ -58,8 +60,7 @@ class AdEnhancements extends Migration
             Schema::table(
                 'ldap_config',
                 function (Blueprint $t){
-                    $t->dropColumn('username');
-                    $t->dropColumn('password');
+                    $t->dropColumn(['username', 'password']);
                 }
             );
         }
