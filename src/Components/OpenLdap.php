@@ -118,29 +118,40 @@ class OpenLdap implements Provider
     public function getObjectByDn($dn, $attributes = [])
     {
         $cookie = '';
-        $search = false;
-        $result = false;
         $out = ['count' => 0];
 
         do {
-            try {
-                ldap_control_paged_result($this->connection, $this->pageSize, true, $cookie);
+            $controls = [[
+                'oid' => LDAP_CONTROL_PAGEDRESULTS,
+                'value' => [
+                    'size' => $this->pageSize,
+                    'cookie' => $cookie
+                ]
+            ]];
+            $search = ldap_read(
+                $this->connection,
+                $dn,
+                "(objectclass=*)",
+                $attributes,
+                0,
+                0,
+                0,
+                LDAP_DEREF_NEVER,
+                $controls
+            );
+            $result = ldap_get_entries($this->connection, $search);
 
-                $search = ldap_read($this->connection, $dn, "(objectclass=*)", $attributes);
-                $result = ldap_get_entries($this->connection, $search);
+            $out['count'] += $result['count'];
+            array_shift($result);
+            $out = array_merge($out, $result);
 
-                $out['count'] += $result['count'];
-                array_shift($result);
-                $out = array_merge($out, $result);
-
-                ldap_control_paged_result_response($this->connection, $search, $cookie);
-            } catch (\ErrorException $e) {
-                if (false === $search || false === $result) {
-                    throw $e;
-                }
+            if (isset($controls[LDAP_CONTROL_PAGEDRESULTS]['value']['cookie'])) {
+                // You need to pass the cookie from the last call to the next one
+                $cookie = $controls[LDAP_CONTROL_PAGEDRESULTS]['value']['cookie'];
+            } else {
                 $cookie = '';
             }
-        } while ($cookie !== null && $cookie != '');
+        } while (!empty($cookie));
 
         if (isset($out[0])) {
             return $out[0];
@@ -256,29 +267,41 @@ class OpenLdap implements Provider
         $connection = $this->connection;
 
         $cookie = '';
-        $search = false;
-        $result = false;
         $out = ['count' => 0];
 
         do {
-            try {
-                ldap_control_paged_result($connection, $this->pageSize, true, $cookie);
+            $controls = [[
+                'oid' => LDAP_CONTROL_PAGEDRESULTS,
+                'value' => [
+                    'size' => $this->pageSize,
+                    'cookie' => $cookie
+                ]
+            ]];
+            $search = ldap_search(
+                $connection,
+                $baseDn,
+                $filter,
+                $attributes,
+                0,
+                0,
+                0,
+                LDAP_DEREF_NEVER,
+                $controls
+            );
+            ldap_parse_result($connection, $search, $errcode , $matcheddn , $errmsg , $referrals, $controls);
 
-                $search = ldap_search($connection, $baseDn, $filter, $attributes);
-                $result = ldap_get_entries($connection, $search);
+            $result = ldap_get_entries($connection, $search);
 
-                $out['count'] += $result['count'];
-                array_shift($result);
-                $out = array_merge($out, $result);
+            $out['count'] += $result['count'];
+            array_shift($result);
+            $out = array_merge($out, $result);
 
-                ldap_control_paged_result_response($connection, $search, $cookie);
-            } catch (\ErrorException $e) {
-                if (false === $search || false === $result) {
-                    throw $e;
-                }
+            if (isset($controls[LDAP_CONTROL_PAGEDRESULTS]['value']['cookie'])) {
+                $cookie = $controls[LDAP_CONTROL_PAGEDRESULTS]['value']['cookie'];
+            } else {
                 $cookie = '';
             }
-        } while ($cookie !== null && $cookie != '');
+        } while (!empty($cookie));
 
         return $out;
     }
