@@ -3,6 +3,7 @@
 namespace DreamFactory\Core\ADLdap\Components;
 
 use DreamFactory\Core\ADLdap\Contracts\Provider;
+use DreamFactory\Core\ADLdap\Utility\VersionUtility;
 use DreamFactory\Core\Exceptions\InternalServerErrorException;
 use DreamFactory\Core\Exceptions\BadRequestException;
 use DreamFactory\Core\Exceptions\NotFoundException;
@@ -117,41 +118,11 @@ class OpenLdap implements Provider
     /** @inheritdoc */
     public function getObjectByDn($dn, $attributes = [])
     {
-        $cookie = '';
-        $out = ['count' => 0];
-
-        do {
-            $controls = [[
-                'oid' => LDAP_CONTROL_PAGEDRESULTS,
-                'value' => [
-                    'size' => $this->pageSize,
-                    'cookie' => $cookie
-                ]
-            ]];
-            $search = ldap_read(
-                $this->connection,
-                $dn,
-                "(objectclass=*)",
-                $attributes,
-                0,
-                0,
-                0,
-                LDAP_DEREF_NEVER,
-                $controls
-            );
-            $result = ldap_get_entries($this->connection, $search);
-
-            $out['count'] += $result['count'];
-            array_shift($result);
-            $out = array_merge($out, $result);
-
-            if (isset($controls[LDAP_CONTROL_PAGEDRESULTS]['value']['cookie'])) {
-                // You need to pass the cookie from the last call to the next one
-                $cookie = $controls[LDAP_CONTROL_PAGEDRESULTS]['value']['cookie'];
-            } else {
-                $cookie = '';
-            }
-        } while (!empty($cookie));
+        if (VersionUtility::isPHP73orLower()) {
+            $out = $this->getObjectByDn_php73($dn, $attributes);
+        } else {
+            $out = $this->getObjectByDn_php74($dn, $attributes);
+        }
 
         if (isset($out[0])) {
             return $out[0];
@@ -266,42 +237,11 @@ class OpenLdap implements Provider
         $baseDn = (empty($baseDn)) ? $this->baseDn : $baseDn;
         $connection = $this->connection;
 
-        $cookie = '';
-        $out = ['count' => 0];
-
-        do {
-            $controls = [[
-                'oid' => LDAP_CONTROL_PAGEDRESULTS,
-                'value' => [
-                    'size' => $this->pageSize,
-                    'cookie' => $cookie
-                ]
-            ]];
-            $search = ldap_search(
-                $connection,
-                $baseDn,
-                $filter,
-                $attributes,
-                0,
-                0,
-                0,
-                LDAP_DEREF_NEVER,
-                $controls
-            );
-            ldap_parse_result($connection, $search, $errcode , $matcheddn , $errmsg , $referrals, $controls);
-
-            $result = ldap_get_entries($connection, $search);
-
-            $out['count'] += $result['count'];
-            array_shift($result);
-            $out = array_merge($out, $result);
-
-            if (isset($controls[LDAP_CONTROL_PAGEDRESULTS]['value']['cookie'])) {
-                $cookie = $controls[LDAP_CONTROL_PAGEDRESULTS]['value']['cookie'];
-            } else {
-                $cookie = '';
-            }
-        } while (!empty($cookie));
+        if (VersionUtility::isPHP73orLower()) {
+            $out = $this->search_php73($connection, $filter, $attributes, $baseDn);
+        } else {
+            $out = $this->search_php74($connection, $filter, $attributes, $baseDn);
+        }
 
         return $out;
     }
@@ -333,5 +273,154 @@ class OpenLdap implements Provider
     public function listComputer(array $attributes = [], $filter = null)
     {
         // TODO: Implement listComputer() method.
+    }
+
+    /**
+     * Added to be able to support PHP 7.3 and lower.
+     *
+     * You can only call this in PHP 7.3 and lower. In all others, the version causes an error when calling
+     * the method ldap_control_paged_result, as this method deprecated in 7.4+.
+     *
+     * @param resource $connection
+     * @param string $filter
+     * @param array $attributes
+     * @param string $baseDn
+     * @return array
+     * @throws \ErrorException
+     */
+    protected function search_php73($connection, $filter, array $attributes = [], $baseDn = null) {
+        $cookie = '';
+        $search = false;
+        $result = false;
+        $out = ['count' => 0];
+
+        do {
+            try {
+                ldap_control_paged_result($connection, $this->pageSize, true, $cookie);
+
+                $search = ldap_search($connection, $baseDn, $filter, $attributes);
+                $result = ldap_get_entries($connection, $search);
+
+                $out['count'] += $result['count'];
+                array_shift($result);
+                $out = array_merge($out, $result);
+
+                ldap_control_paged_result_response($connection, $search, $cookie);
+            } catch (\ErrorException $e) {
+                if (false === $search || false === $result) {
+                    throw $e;
+                }
+                $cookie = '';
+            }
+        } while ($cookie !== null && $cookie != '');
+
+        return $out;
+    }
+
+    /**
+     * Added to be able to support PHP 7.4+.
+     *
+     * You can only call this in PHP 7.4+. In all others, the version causes an error when calling the method ldap_search
+     *
+     * @param resource $connection
+     * @param string $filter
+     * @param array $attributes
+     * @param string $baseDn
+     * @return array
+     */
+    protected function search_php74($connection, $filter, array $attributes = [], $baseDn = null) {
+        $cookie = '';
+        $out = ['count' => 0];
+
+        do {
+            $controls = [['oid' => LDAP_CONTROL_PAGEDRESULTS, 'value' => ['size' => $this->pageSize, 'cookie' => $cookie]]];
+            $search = ldap_search($connection, $baseDn, $filter, $attributes,
+                0, 0, 0, LDAP_DEREF_NEVER, $controls);
+            ldap_parse_result($connection, $search, $errcode , $matcheddn , $errmsg , $referrals, $controls);
+
+            $result = ldap_get_entries($connection, $search);
+
+            $out['count'] += $result['count'];
+            array_shift($result);
+            $out = array_merge($out, $result);
+
+            if (isset($controls[LDAP_CONTROL_PAGEDRESULTS]['value']['cookie'])) {
+                $cookie = $controls[LDAP_CONTROL_PAGEDRESULTS]['value']['cookie'];
+            } else {
+                $cookie = '';
+            }
+        } while (!empty($cookie));
+        return $out;
+    }
+
+    /**
+     * Added to be able to support PHP 7.3 and lower.
+     *
+     * You can only call this in PHP 7.3 and lower. In all others, the version causes an error when calling
+     * the method ldap_control_paged_result, as this method deprecated in 7.4+.
+     *
+     * @param $dn
+     * @param array $attributes
+     * @return array
+     * @throws \ErrorException
+     */
+    protected function getObjectByDn_php73($dn, $attributes = []) {
+        $cookie = '';
+        $search = false;
+        $result = false;
+        $out = ['count' => 0];
+
+        do {
+            try {
+                ldap_control_paged_result($this->connection, $this->pageSize, true, $cookie);
+
+                $search = ldap_read($this->connection, $dn, "(objectclass=*)", $attributes);
+                $result = ldap_get_entries($this->connection, $search);
+
+                $out['count'] += $result['count'];
+                array_shift($result);
+                $out = array_merge($out, $result);
+
+                ldap_control_paged_result_response($this->connection, $search, $cookie);
+            } catch (\ErrorException $e) {
+                if (false === $search || false === $result) {
+                    throw $e;
+                }
+                $cookie = '';
+            }
+        } while ($cookie !== null && $cookie != '');
+
+        return $out;
+    }
+
+    /**
+     * Added to be able to support PHP 7.4+.
+     *
+     * You can only call this in PHP 7.4+. In all others, the version causes an error when calling the method ldap_read
+     *
+     * @param $dn
+     * @param array $attributes
+     * @return array
+     */
+    protected function getObjectByDn_php74($dn, $attributes = []) {
+        $out = ['count' => 0];
+        $cookie = '';
+        do {
+            $controls = [['oid' => LDAP_CONTROL_PAGEDRESULTS, 'value' => ['size' => $this->pageSize, 'cookie' => $cookie]]];
+            $search = ldap_read($this->connection, $dn, "(objectclass=*)", $attributes,
+                0, 0, 0, LDAP_DEREF_NEVER, $controls);
+            $result = ldap_get_entries($this->connection, $search);
+
+            $out['count'] += $result['count'];
+            array_shift($result);
+            $out = array_merge($out, $result);
+
+            if (isset($controls[LDAP_CONTROL_PAGEDRESULTS]['value']['cookie'])) {
+                $cookie = $controls[LDAP_CONTROL_PAGEDRESULTS]['value']['cookie'];
+            } else {
+                $cookie = '';
+            }
+        } while (!empty($cookie));
+        return $out;
     }
 }
