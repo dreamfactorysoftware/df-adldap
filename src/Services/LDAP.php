@@ -3,7 +3,9 @@
 namespace DreamFactory\Core\ADLdap\Services;
 
 use DreamFactory\Core\ADLdap\Components\OpenLdap;
+use DreamFactory\Core\ADLdap\Models\RoleADLdap;
 use DreamFactory\Core\Components\RequireExtensions;
+use DreamFactory\Core\Exceptions\BadRequestException;
 use DreamFactory\Core\Exceptions\UnauthorizedException;
 use DreamFactory\Core\Models\User;
 use DreamFactory\Core\Services\BaseRestService;
@@ -77,7 +79,38 @@ class LDAP extends BaseRestService
      */
     public function getRole()
     {
+        if (array_get($this->config, 'map_group_to_role', false)) {
+            $groups = $this->driver->getGroups();
+            if (!empty($groups)) {
+                foreach ($groups as $group) {
+                    $role = $this->findRoleByGroup($group);
+                    if (!empty($role)) {
+                        return $role->role_id;
+                    }
+                }
+            }
+        }
+
         return $this->defaultRole;
+    }
+
+    /**
+     * Finds a matching role, first with group dn then if not found,
+     * finds with parent group's (memberOf) dn. (supporting sub-group).
+     *
+     * @param array $group
+     *
+     * @return mixed|null
+     */
+    public function findRoleByGroup(array $group)
+    {
+        $dn = array_get($group, 'dn');
+
+        if (!empty($dn)) {
+            return RoleADLdap::whereDn($dn)->first();
+        }
+
+        return null;
     }
 
     /**
@@ -86,6 +119,37 @@ class LDAP extends BaseRestService
     public function getProviderName()
     {
         return static::PROVIDER_NAME;
+    }
+
+    /**
+     * Authenticates the Admin user. Used for utilizing additional
+     * features of this service.
+     *
+     * @param string $username
+     * @param string $password
+     *
+     * @return mixed
+     * @throws \DreamFactory\Core\Exceptions\UnauthorizedException
+     * @throws BadRequestException
+     */
+    public function authenticateAdminUser($username = null, $password = null)
+    {
+
+        if (empty($username) || empty($password)) {
+            throw new BadRequestException('No username and/or password provided.');
+        }
+
+        $auth = $this->driver->authenticate($username, $password);
+
+        if (!$auth) {
+            if (!empty($username)) {
+                throw new UnauthorizedException('Invalid credentials provided. Cannot authenticate against the LDAP server.');
+            } else {
+                throw new UnauthorizedException('Invalid credentials. Cannot authenticate against the LDAP server.');
+            }
+        }
+
+        return $auth;
     }
 
     /**
@@ -126,8 +190,9 @@ class LDAP extends BaseRestService
             $user->confirm_code = null;
             $user->save();
             Session::setUserInfoWithJWT($user, $remember);
+            $userGroups = $this->getGroupsDns($this->driver->getGroups());
 
-            return Session::getPublicInfo();
+            return array_merge(Session::getPublicInfo(), $userGroups);
         } else {
             throw new UnauthorizedException('Invalid username and password provided.');
         }
@@ -218,5 +283,21 @@ class LDAP extends BaseRestService
         }
 
         return $user;
+    }
+
+
+    /**
+     * Map groups to groupMembership array.
+     *
+     * @param array $groups
+     * @return array
+     */
+    public function getGroupsDns(array $groups)
+    {
+        $result = [];
+        foreach ($groups as $group) {
+            $result [] = array_get($group, 'dn');
+        }
+        return ['groupMembership' => $result];
     }
 }
