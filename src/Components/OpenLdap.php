@@ -140,7 +140,38 @@ class OpenLdap implements Provider
     /** @inheritdoc */
     public function getGroups($username = null, $attributes = [])
     {
-        return [];
+        $result = [];
+
+        if (empty($username)) {
+            $user = $this->getUser();
+        } else {
+            $user = $this->getUserByUserName($username);
+        }
+
+        $search = $this->search('(&(memberUid=' . $user->uid . '))');
+        $groups = !empty($user->memberof) ? $user->memberof : $search;
+
+        if (!empty($groups)) {
+
+            if (!is_array($groups)) {
+                $groups = [$groups];
+            }
+
+            foreach ($groups as $key => $group) {
+                if ($key !== 'count') {
+                    $dn = is_array($group) ? array_get($group, 'dn') : $group;
+                    $adGroup = new ADGroup($this->getObjectByDn($dn));
+
+                    if (in_array('primary', $attributes) || empty($attributes)) {
+                        $result[] = array_merge($adGroup->getData($attributes), ['primary' => false]);
+                    } else {
+                        $result[] = $adGroup->getData($attributes);
+                    }
+                }
+            }
+        }
+
+        return $result;
     }
 
     /** @inheritdoc */

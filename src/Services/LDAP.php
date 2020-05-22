@@ -3,6 +3,7 @@
 namespace DreamFactory\Core\ADLdap\Services;
 
 use DreamFactory\Core\ADLdap\Components\OpenLdap;
+use DreamFactory\Core\ADLdap\Models\RoleADLdap;
 use DreamFactory\Core\Components\RequireExtensions;
 use DreamFactory\Core\Exceptions\UnauthorizedException;
 use DreamFactory\Core\Models\User;
@@ -77,7 +78,38 @@ class LDAP extends BaseRestService
      */
     public function getRole()
     {
+        if (array_get($this->config, 'map_group_to_role', false)) {
+            $groups = $this->driver->getGroups();
+            if (!empty($groups)) {
+                foreach ($groups as $group) {
+                    $role = $this->findRoleByGroup($group);
+                    if (!empty($role)) {
+                        return $role->role_id;
+                    }
+                }
+            }
+        }
+
         return $this->defaultRole;
+    }
+
+    /**
+     * Finds a matching role, first with group dn then if not found,
+     * finds with parent group's (memberOf) dn. (supporting sub-group).
+     *
+     * @param array $group
+     *
+     * @return mixed|null
+     */
+    public function findRoleByGroup(array $group)
+    {
+        $dn = array_get($group, 'dn');
+
+        if (!empty($dn)) {
+            return RoleADLdap::whereDn($dn)->first();;
+        }
+
+        return null;
     }
 
     /**
