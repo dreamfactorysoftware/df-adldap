@@ -138,9 +138,47 @@ class OpenLdap implements Provider
     }
 
     /** @inheritdoc */
-    public function getGroups($username = null, $attributes = [])
+    public function getGroups($username = null, $attributes = [], $filter = '')
     {
-        return [];
+        $result = [];
+
+        if (empty($username)) {
+            $user = $this->getUser();
+        } else {
+            $user = $this->getUserByUserName($username);
+        }
+
+        $search = $this->search("(&(memberUid=$user->uid)(objectClass=posixGroup)$filter)", $attributes);
+        $groups = !empty($user->memberof) ? $user->memberof : $search;
+        if ((empty($groups) || (isset($groups['count'])) && $groups['count'] === 0) && !is_null($user->groupmembership)) {
+            $groups = $user->groupmembership;
+        }
+
+        if (empty($groups) || (isset($groups['count']) && $groups['count'] === 0)) {
+            $groups = isset($user->getData()['groupmembership']) ? $user->getData()['groupmembership'] : [];
+        }
+
+        if (!empty($groups)) {
+
+            if (!is_array($groups)) {
+                $groups = [$groups];
+            }
+
+            foreach ($groups as $key => $group) {
+                if ($key !== 'count') {
+                    $dn = is_array($group) ? array_get($group, 'dn') : $group;
+                    $adGroup = new ADGroup($this->getObjectByDn($dn));
+
+                    if (in_array('primary', $attributes) || empty($attributes)) {
+                        $result[] = array_merge($adGroup->getData($attributes), ['primary' => false]);
+                    } else {
+                        $result[] = $adGroup->getData($attributes);
+                    }
+                }
+            }
+        }
+
+        return $result;
     }
 
     /** @inheritdoc */
@@ -266,7 +304,26 @@ class OpenLdap implements Provider
     /** @inheritdoc */
     public function listGroup(array $attributes = [], $filter = null)
     {
-        // TODO: Implement listGroup() method.
+
+        $result = [];
+        if (!empty($filter) && substr($filter, 0, 1) != '(') {
+            $filter = '(' . $filter . ')';
+        }
+
+        $groups = $this->getGroups(null, $attributes, $filter);
+
+        if (isset($groups['count']) && $groups['count'] === 0) {
+            return [];
+        }
+
+        foreach ($groups as $group) {
+            if (is_array($group)) {
+                $adGroup = new ADGroup($group);
+                $result[] = $adGroup->getData($attributes);
+            }
+        }
+
+        return $result;
     }
 
     /** @inheritdoc */

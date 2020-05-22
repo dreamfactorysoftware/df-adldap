@@ -20,12 +20,18 @@ class LDAPConfig extends BaseServiceConfigModel
         'default_role',
         'host',
         'base_dn',
-        'account_suffix'
+        'account_suffix',
+        'map_group_to_role'
     ];
 
-    protected $hidden = ['map_group_to_role', 'username', 'password'];
+    protected $hidden = ['map_group_hierarchy', 'username', 'password'];
 
-    protected $casts = ['service_id' => 'integer', 'default_role' => 'integer'];
+    protected $casts = [
+        'service_id' => 'integer',
+        'default_role' => 'integer',
+        'map_group_to_role'   => 'boolean',
+        'map_group_hierarchy'   => 'boolean'
+    ];
 
     protected $rules = [
         'host'    => 'required',
@@ -83,6 +89,9 @@ class LDAPConfig extends BaseServiceConfigModel
                 break;
             case 'account_suffix':
                 $schema['description'] = 'The full account suffix for your domain.';
+                break;
+            case 'map_group_to_role':
+                $schema['description'] = 'Checking this will map your user group to corresponding role.';
                 break;
         }
     }
