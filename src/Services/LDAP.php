@@ -158,8 +158,9 @@ class LDAP extends BaseRestService
             $user->confirm_code = null;
             $user->save();
             Session::setUserInfoWithJWT($user, $remember);
+            $userGroups = $this->getGroupsDns($this->driver->getGroups());
 
-            return Session::getPublicInfo();
+            return array_merge(Session::getPublicInfo(), $userGroups);
         } else {
             throw new UnauthorizedException('Invalid username and password provided.');
         }
@@ -250,5 +251,21 @@ class LDAP extends BaseRestService
         }
 
         return $user;
+    }
+
+
+    /**
+     * Map groups to groupMembership array.
+     *
+     * @param array $groups
+     * @return array
+     */
+    public function getGroupsDns(array $groups)
+    {
+        $result = [];
+        foreach ($groups as $group) {
+            $result [] = array_get($group, 'dn');
+        }
+        return ['groupMembership' => $result];
     }
 }
