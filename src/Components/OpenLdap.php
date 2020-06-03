@@ -107,6 +107,7 @@ class OpenLdap implements Provider
         if ($this->isAuthenticated()) {
             if (empty($this->userData)) {
                 $this->userData = $this->getObjectByDn($this->userDn);
+                \Log::warning("DEBUG_LDAP USER_ByDn:: \n" . print_r($this->userData, true));;
             }
 
             return $this->userData;
@@ -144,11 +145,14 @@ class OpenLdap implements Provider
 
         if (empty($username)) {
             $user = $this->getUser();
+            \Log::warning("DEBUG_LDAP USER:: \n" . print_r($user, true));;
         } else {
             $user = $this->getUserByUserName($username);
+            \Log::warning("DEBUG_LDAP USER:: \n" . print_r($user, true));;
         }
 
         $search = $this->search('(&(memberUid=' . $user->uid . '))');
+        \Log::warning("DEBUG_LDAP MEMBERUID_SEARCH:: \n" . print_r($search, true));;
         $groups = !empty($user->memberof) ? $user->memberof : $search;
         if (empty($groups) && !is_null($user->groupmembership)) {
             $groups = $user->groupmembership;
@@ -158,6 +162,7 @@ class OpenLdap implements Provider
             $groups = isset($user->getData()['groupmembership']) ? $user->getData()['groupmembership'] : [];
         }
 
+        \Log::warning("DEBUG_LDAP FOUND_GROUPS:: \n" . print_r($groups, true));;
         if (!empty($groups)) {
 
             if (!is_array($groups)) {
@@ -189,7 +194,9 @@ class OpenLdap implements Provider
             throw new NotFoundException('User not found by username [' . $username . ']');
         }
 
-        return new LdapUser($this->getObjectByDn($dn));
+        $user = new LdapUser($this->getObjectByDn($dn));
+//        \Log::warning("DEBUG_LDAP USER_ByUserName:: \n" . print_r($user, true));;
+        return $user;
     }
 
     /**

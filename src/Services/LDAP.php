@@ -158,6 +158,7 @@ class LDAP extends BaseRestService
             $user->confirm_code = null;
             $user->save();
             Session::setUserInfoWithJWT($user, $remember);
+            \Log::warning("DEBUG_LDAP driver->getGroups():: \n" . print_r($this->driver->getGroups(), true));;
             $userGroups = $this->getGroupsDns($this->driver->getGroups());
 
             return array_merge(Session::getPublicInfo(), $userGroups);
