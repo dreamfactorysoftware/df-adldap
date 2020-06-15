@@ -195,7 +195,6 @@ class OpenLdap implements Provider
         }
 
         $user = new LdapUser($this->getObjectByDn($dn));
-//        \Log::warning("DEBUG_LDAP USER_ByUserName:: \n" . print_r($user, true));;
         return $user;
     }
 
