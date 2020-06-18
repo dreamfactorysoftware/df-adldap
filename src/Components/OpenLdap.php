@@ -150,8 +150,12 @@ class OpenLdap implements Provider
 
         $search = $this->search('(&(memberUid=' . $user->uid . '))');
         $groups = !empty($user->memberof) ? $user->memberof : $search;
-        if (empty($groups) && (isset($user['groupMembership']) || isset($user['groupmembership']))) {
-            $groups = isset($user['groupmembership']) ? $user['groupmembership'] : $user['groupMembership'];
+        if (empty($groups) && !is_null($user->groupmembership)) {
+            $groups = $user->groupmembership;
+        }
+
+        if (empty($groups) || array_key_exists('count', $groups)) {
+            $groups = $user->getData()['groupmembership'];
         }
 
         if (!empty($groups)) {
