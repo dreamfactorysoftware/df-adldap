@@ -84,12 +84,15 @@ class LDAP extends BaseRestService
                 foreach ($groups as $group) {
                     $role = $this->findRoleByGroup($group);
                     if (!empty($role)) {
+
+                        \Log::warning("DEBUG_LDAP LDAP_ROLE:: \n" . print_r($role, true));;
                         return $role->role_id;
                     }
                 }
             }
         }
 
+        \Log::warning("DEBUG_LDAP DEFAULT_LDAP_ROLE:: \n" . print_r($this->defaultRole, true));;
         return $this->defaultRole;
     }
 
@@ -106,7 +109,8 @@ class LDAP extends BaseRestService
         $dn = array_get($group, 'dn');
 
         if (!empty($dn)) {
-            return RoleADLdap::whereDn($dn)->first();;
+            \Log::warning("DEBUG_LDAP GROUP_DN:: \n" . print_r($dn, true));;
+            return RoleADLdap::whereDn($dn)->first();
         }
 
         return null;
