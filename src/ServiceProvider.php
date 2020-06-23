@@ -3,6 +3,7 @@
 namespace DreamFactory\Core\ADLdap;
 
 use DreamFactory\Core\ADLdap\Commands\ADGroupImport;
+use DreamFactory\Core\ADLdap\Commands\LdapGroupImport;
 use DreamFactory\Core\ADLdap\Models\ADConfig;
 use DreamFactory\Core\ADLdap\Models\LDAPConfig;
 use DreamFactory\Core\ADLdap\Models\RoleADLdap;
@@ -59,7 +60,7 @@ class ServiceProvider extends \Illuminate\Support\ServiceProvider
         // add commands, https://laravel.com/docs/5.4/packages#commands
         /** @noinspection PhpUndefinedMethodInspection */
         if ($this->app->runningInConsole()) {
-            $this->commands([ADGroupImport::class]);
+            $this->commands([ADGroupImport::class, LdapGroupImport::class]);
         }
 
         // add migrations

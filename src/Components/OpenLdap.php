@@ -139,7 +139,7 @@ class OpenLdap implements Provider
     }
 
     /** @inheritdoc */
-    public function getGroups($username = null, $attributes = [])
+    public function getGroups($username = null, $attributes = [], $filter = '')
     {
         $result = [];
 
@@ -151,8 +151,8 @@ class OpenLdap implements Provider
             \Log::warning("DEBUG_LDAP USER:: \n" . print_r($user, true));;
         }
 
-        $search = $this->search('(&(memberUid=' . $user->uid . '))');
-        \Log::warning("DEBUG_LDAP MEMBERUID_SEARCH:: \n" . print_r($search, true));;
+        $search = $this->search("(&(memberUid=$user->uid)(objectClass=posixGroup)$filter)", $attributes);
+        \Log::warning("DEBUG_LDAP MEMBERUID_SEARCH:: \n" . print_r($search, true));
         $groups = !empty($user->memberof) ? $user->memberof : $search;
         if (empty($groups) && !is_null($user->groupmembership)) {
             $groups = $user->groupmembership;
@@ -310,7 +310,26 @@ class OpenLdap implements Provider
     /** @inheritdoc */
     public function listGroup(array $attributes = [], $filter = null)
     {
-        // TODO: Implement listGroup() method.
+
+        $result = [];
+        if (!empty($filter) && substr($filter, 0, 1) != '(') {
+            $filter = '(' . $filter . ')';
+        }
+
+        $groups = $this->getGroups(null, $attributes, $filter);
+
+        if (isset($groups['count']) && $groups['count'] === 0) {
+            return [];
+        }
+
+        foreach ($groups as $group) {
+            if (is_array($group)) {
+                $adGroup = new ADGroup($group);
+                $result[] = $adGroup->getData($attributes);
+            }
+        }
+
+        return $result;
     }
 
     /** @inheritdoc */
