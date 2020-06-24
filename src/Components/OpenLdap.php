@@ -154,11 +154,11 @@ class OpenLdap implements Provider
         $search = $this->search("(&(memberUid=$user->uid)(objectClass=posixGroup)$filter)", $attributes);
         \Log::warning("DEBUG_LDAP MEMBERUID_SEARCH:: \n" . print_r($search, true));
         $groups = !empty($user->memberof) ? $user->memberof : $search;
-        if (empty($groups) && !is_null($user->groupmembership)) {
+        if ((empty($groups) || (isset($groups['count'])) && $groups['count'] === 0) && !is_null($user->groupmembership)) {
             $groups = $user->groupmembership;
         }
 
-        if (empty($groups) && array_key_exists('count', $groups)) {
+        if (empty($groups) || (isset($groups['count']) && $groups['count'] === 0)) {
             $groups = isset($user->getData()['groupmembership']) ? $user->getData()['groupmembership'] : [];
         }
 
