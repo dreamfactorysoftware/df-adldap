@@ -80,7 +80,7 @@ class ADLdap extends OpenLdap
     }
 
     /** @inheritdoc */
-    public function getGroups($username = null, $attributes = [])
+    public function getGroups($username = null, $attributes = [], $filter = '')
     {
         $result = [];
 
