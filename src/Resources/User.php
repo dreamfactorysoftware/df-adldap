@@ -40,7 +40,7 @@ class User extends BaseADLdapResource
         $attributes = [];
 
         if ('*' !== $fields) {
-            $attributes = explode(',', $fields);
+            $attributes = explode(',', (string) $fields);
         }
 
         if (empty($username)) {

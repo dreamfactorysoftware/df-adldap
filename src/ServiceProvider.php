@@ -29,9 +29,7 @@ class ServiceProvider extends \Illuminate\Support\ServiceProvider
                     'group'                 => ServiceTypeGroups::LDAP,
                     'subscription_required' => LicenseLevel::SILVER,
                     'config_handler'        => ADConfig::class,
-                    'factory'               => function ($config) {
-                        return new ADLdap($config);
-                    }
+                    'factory'               => fn($config) => new ADLdap($config)
                 ])
             );
             $df->addType(
@@ -42,9 +40,7 @@ class ServiceProvider extends \Illuminate\Support\ServiceProvider
                     'group'                 => ServiceTypeGroups::LDAP,
                     'subscription_required' => LicenseLevel::SILVER,
                     'config_handler'        => LDAPConfig::class,
-                    'factory'               => function ($config) {
-                        return new LDAP($config);
-                    }
+                    'factory'               => fn($config) => new LDAP($config)
                 ])
             );
         });

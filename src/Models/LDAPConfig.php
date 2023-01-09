@@ -57,9 +57,6 @@ class LDAPConfig extends BaseServiceConfigModel
         return $schema;
     }
 
-    /**
-     * @param array $schema
-     */
     protected static function prepareConfigSchemaField(array &$schema)
     {
         parent::prepareConfigSchemaField($schema);
