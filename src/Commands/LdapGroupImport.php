@@ -47,7 +47,7 @@ class LdapGroupImport extends Command
      */
     public function handle()
     {
-        if (!class_exists('DreamFactory\\Core\\ADLdap\\Services\\LDAP')) {
+        if (!class_exists(LDAP::class)) {
             $this->error('Command unavailable. Please install \'dreamfactory/df-adldap\' package to use this command.');
 
             return;
@@ -132,7 +132,7 @@ class LdapGroupImport extends Command
         } catch (\Exception $e) {
             $msg = $e->getMessage();
             $this->error($msg);
-            if (strpos($msg, 'Size limit exceeded') !== false) {
+            if (str_contains($msg, 'Size limit exceeded')) {
                 $this->error('Please use "--filter=" option to avoid exceeding size limit');
             }
         }
@@ -140,7 +140,7 @@ class LdapGroupImport extends Command
 
     public static function dnToRoleName($dn)
     {
-        $attributes = explode(',', $dn);
+        $attributes = explode(',', (string) $dn);
         $attValues = [];
 
         foreach ($attributes as $attribute) {
@@ -151,7 +151,7 @@ class LdapGroupImport extends Command
         $roleName = implode('+', $attValues);
 
         if (strlen($roleName) > 64) {
-            $roleName = substr($roleName, 0, 59) . '_' . sprintf("%04d", mt_rand(1, 9999));
+            $roleName = substr($roleName, 0, 59) . '_' . sprintf("%04d", random_int(1, 9999));
         }
 
         return $roleName;

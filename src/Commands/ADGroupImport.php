@@ -47,7 +47,7 @@ class ADGroupImport extends Command
      */
     public function handle()
     {
-        if (!class_exists('DreamFactory\\Core\\ADLdap\\Services\\ADLdap')) {
+        if (!class_exists(ADLdap::class)) {
             $this->error('Command unavailable. Please install \'dreamfactory/df-adldap\' package to use this command.');
 
             return;
@@ -124,7 +124,7 @@ class ADGroupImport extends Command
         } catch (\Exception $e) {
             $msg = $e->getMessage();
             $this->error($msg);
-            if (strpos($msg, 'Size limit exceeded') !== false) {
+            if (str_contains($msg, 'Size limit exceeded')) {
                 $this->error('Please use "--filter=" option to avoid exceeding size limit');
             }
         }
@@ -132,7 +132,7 @@ class ADGroupImport extends Command
 
     public static function dnToRoleName($dn)
     {
-        $attributes = explode(',', $dn);
+        $attributes = explode(',', (string) $dn);
         $attValues = [];
 
         foreach ($attributes as $attribute) {

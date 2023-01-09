@@ -122,9 +122,7 @@ interface Provider
     /**
      * Lists all users.
      *
-     * @param array $attributes
      * @param mixed $filter
-     *
      * @return mixed
      */
     public function listUser(array $attributes = [], $filter = null);
@@ -132,9 +130,7 @@ interface Provider
     /**
      * Lists all groups.
      *
-     * @param array $attributes
      * @param mixed $filter
-     *
      * @return mixed
      */
     public function listGroup(array $attributes = [], $filter = null);
@@ -142,9 +138,7 @@ interface Provider
     /**
      * Lists all computers.
      *
-     * @param array $attributes
      * @param mixed $filter
-     *
      * @return mixed
      */
     public function listComputer(array $attributes = [], $filter = null);

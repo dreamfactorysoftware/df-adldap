@@ -4,6 +4,7 @@ namespace DreamFactory\Core\ADLdap\Components;
 
 use DreamFactory\Core\Utility\DataFormatter;
 use DreamFactory\Core\Exceptions\NotFoundException;
+use \Illuminate\Support\Arr;
 
 abstract class BaseObject
 {
@@ -13,9 +14,6 @@ abstract class BaseObject
     /** @var array */
     protected $rawData = [];
 
-    /**
-     * @param array $userInfo
-     */
     public function __construct(array $userInfo)
     {
         $this->rawData = static::cleanData($userInfo, true);
@@ -53,9 +51,7 @@ abstract class BaseObject
     /**
      * Cleans and re-formats data.
      *
-     * @param array   $object
      * @param boolean $cleanNumericOnly
-     *
      * @return array
      */
     public static function cleanData(array $object, $cleanNumericOnly = false)
@@ -81,9 +77,9 @@ abstract class BaseObject
             }
 
             if (is_array($value)) {
-                if (array_get($value, 'count') === 1) {
+                if (Arr::get($value, 'count') === 1) {
                     $object[$key] = $value[0];
-                } else if (array_get($value, 'count') > 1) {
+                } else if (Arr::get($value, 'count') > 1) {
                     unset($object[$key]['count']);
                 }
             }
@@ -105,7 +101,7 @@ abstract class BaseObject
     {
         $key = strtolower(substr($method, 3));
 
-        return array_get($this->data, $key);
+        return Arr::get($this->data, $key);
     }
 
     /**
@@ -118,6 +114,6 @@ abstract class BaseObject
      */
     public function __get($key)
     {
-        return array_get($this->data, $key, array_get($this->rawData, $key));
+        return Arr::get($this->data, $key, Arr::get($this->rawData, $key));
     }
 }

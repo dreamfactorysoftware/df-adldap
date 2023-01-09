@@ -3,18 +3,13 @@
 namespace DreamFactory\Core\ADLdap\Components;
 
 use DreamFactory\Core\ADLdap\Contracts\Provider;
-use DreamFactory\Core\ADLdap\Utility\VersionUtility;
 use DreamFactory\Core\Exceptions\InternalServerErrorException;
 use DreamFactory\Core\Exceptions\BadRequestException;
 use DreamFactory\Core\Exceptions\NotFoundException;
-
+use \Illuminate\Support\Arr;
 class OpenLdap implements Provider
 {
-    /** @var resource */
-    protected $connection;
-
-    /** @var  string */
-    protected $baseDn;
+    protected \LDAP\Connection $connection;
 
     /** @var  string */
     protected $userDn;
@@ -31,15 +26,15 @@ class OpenLdap implements Provider
     /**
      * @param $host
      * @param $baseDn
+     * @param string $baseDn
      */
-    public function __construct($host, $baseDn)
+    public function __construct($host, protected $baseDn)
     {
         $connection = ldap_connect($host);
         ldap_set_option($connection, LDAP_OPT_PROTOCOL_VERSION, 3);
         ldap_set_option($connection, LDAP_OPT_REFERRALS, 0);
 
         $this->connection = $connection;
-        $this->baseDn = $baseDn;
     }
 
     /**
@@ -116,22 +111,6 @@ class OpenLdap implements Provider
     }
 
     /** @inheritdoc */
-    public function getObjectByDn($dn, $attributes = [])
-    {
-        if (VersionUtility::isPHP73orLower()) {
-            $out = $this->getObjectByDn_php73($dn, $attributes);
-        } else {
-            $out = $this->getObjectByDn_php74($dn, $attributes);
-        }
-
-        if (isset($out[0])) {
-            return $out[0];
-        }
-
-        return [];
-    }
-
-    /** @inheritdoc */
     public function getUser()
     {
         return new LdapUser($this->getUserInfo());
@@ -155,7 +134,7 @@ class OpenLdap implements Provider
         }
 
         if (empty($groups) || (isset($groups['count']) && $groups['count'] === 0)) {
-            $groups = isset($user->getData()['groupmembership']) ? $user->getData()['groupmembership'] : [];
+            $groups = $user->getData()['groupmembership'] ?? [];
         }
 
         if (!empty($groups)) {
@@ -166,7 +145,7 @@ class OpenLdap implements Provider
 
             foreach ($groups as $key => $group) {
                 if ($key !== 'count') {
-                    $dn = is_array($group) ? array_get($group, 'dn') : $group;
+                    $dn = is_array($group) ? Arr::get($group, 'dn') : $group;
                     $adGroup = new ADGroup($this->getObjectByDn($dn));
 
                     if (in_array('primary', $attributes) || empty($attributes)) {
@@ -238,7 +217,7 @@ class OpenLdap implements Provider
      */
     public static function getRootDn($dn)
     {
-        $dn = str_replace('DC=', 'dc=', $dn);
+        $dn = str_replace('DC=', 'dc=', (string) $dn);
         $dn = substr($dn, strpos($dn, 'dc='));
 
         return $dn;
@@ -258,30 +237,6 @@ class OpenLdap implements Provider
         }
 
         return null;
-    }
-
-    /**
-     * A generic function for searching AD/LDAP server.
-     *
-     * @param string $filter
-     * @param array  $attributes
-     * @param string $baseDn
-     *
-     * @return array
-     * @throws \ErrorException;
-     */
-    public function search($filter, array $attributes = [], $baseDn = null)
-    {
-        $baseDn = (empty($baseDn)) ? $this->baseDn : $baseDn;
-        $connection = $this->connection;
-
-        if (VersionUtility::isPHP73orLower()) {
-            $out = $this->search_php73($connection, $filter, $attributes, $baseDn);
-        } else {
-            $out = $this->search_php74($connection, $filter, $attributes, $baseDn);
-        }
-
-        return $out;
     }
 
     /** @inheritdoc */
@@ -306,7 +261,7 @@ class OpenLdap implements Provider
     {
 
         $result = [];
-        if (!empty($filter) && substr($filter, 0, 1) != '(') {
+        if (!empty($filter) && substr((string) $filter, 0, 1) != '(') {
             $filter = '(' . $filter . ')';
         }
 
@@ -333,61 +288,20 @@ class OpenLdap implements Provider
     }
 
     /**
-     * Added to be able to support PHP 7.3 and lower.
-     *
-     * You can only call this in PHP 7.3 and lower. In all others, the version causes an error when calling
-     * the method ldap_control_paged_result, as this method deprecated in 7.4+.
-     *
-     * @param resource $connection
-     * @param string $filter
-     * @param array $attributes
-     * @param string $baseDn
-     * @return array
-     * @throws \ErrorException
-     */
-    protected function search_php73($connection, $filter, array $attributes = [], $baseDn = null) {
-        $cookie = '';
-        $search = false;
-        $result = false;
-        $out = ['count' => 0];
-
-        do {
-            try {
-                ldap_control_paged_result($connection, $this->pageSize, true, $cookie);
-
-                $search = ldap_search($connection, $baseDn, $filter, $attributes);
-                $result = ldap_get_entries($connection, $search);
-
-                $out['count'] += $result['count'];
-                array_shift($result);
-                $out = array_merge($out, $result);
-
-                ldap_control_paged_result_response($connection, $search, $cookie);
-            } catch (\ErrorException $e) {
-                if (false === $search || false === $result) {
-                    throw $e;
-                }
-                $cookie = '';
-            }
-        } while ($cookie !== null && $cookie != '');
-
-        return $out;
-    }
-
-    /**
      * Added to be able to support PHP 7.4+.
      *
      * You can only call this in PHP 7.4+. In all others, the version causes an error when calling the method ldap_search
      *
-     * @param resource $connection
      * @param string $filter
      * @param array $attributes
      * @param string $baseDn
      * @return array
      */
-    protected function search_php74($connection, $filter, array $attributes = [], $baseDn = null) {
+    public function search($filter, array $attributes = [], $baseDn = null) {
         $cookie = '';
         $out = ['count' => 0];
+        $baseDn = (empty($baseDn)) ? $this->baseDn : $baseDn;
+        $connection = $this->connection;
 
         do {
             $controls = [['oid' => LDAP_CONTROL_PAGEDRESULTS, 'value' => ['size' => $this->pageSize, 'cookie' => $cookie]]];
@@ -411,46 +325,6 @@ class OpenLdap implements Provider
     }
 
     /**
-     * Added to be able to support PHP 7.3 and lower.
-     *
-     * You can only call this in PHP 7.3 and lower. In all others, the version causes an error when calling
-     * the method ldap_control_paged_result, as this method deprecated in 7.4+.
-     *
-     * @param $dn
-     * @param array $attributes
-     * @return array
-     * @throws \ErrorException
-     */
-    protected function getObjectByDn_php73($dn, $attributes = []) {
-        $cookie = '';
-        $search = false;
-        $result = false;
-        $out = ['count' => 0];
-
-        do {
-            try {
-                ldap_control_paged_result($this->connection, $this->pageSize, true, $cookie);
-
-                $search = ldap_read($this->connection, $dn, "(objectclass=*)", $attributes);
-                $result = ldap_get_entries($this->connection, $search);
-
-                $out['count'] += $result['count'];
-                array_shift($result);
-                $out = array_merge($out, $result);
-
-                ldap_control_paged_result_response($this->connection, $search, $cookie);
-            } catch (\ErrorException $e) {
-                if (false === $search || false === $result) {
-                    throw $e;
-                }
-                $cookie = '';
-            }
-        } while ($cookie !== null && $cookie != '');
-
-        return $out;
-    }
-
-    /**
      * Added to be able to support PHP 7.4+.
      *
      * You can only call this in PHP 7.4+. In all others, the version causes an error when calling the method ldap_read
@@ -459,7 +333,7 @@ class OpenLdap implements Provider
      * @param array $attributes
      * @return array
      */
-    protected function getObjectByDn_php74($dn, $attributes = []) {
+    public function getObjectByDn($dn, $attributes = []) {
         $out = ['count' => 0];
         $cookie = '';
         do {
@@ -478,6 +352,11 @@ class OpenLdap implements Provider
                 $cookie = '';
             }
         } while (!empty($cookie));
-        return $out;
+
+        if (isset($out[0])) {
+            return $out[0];
+        }
+
+        return [];
     }
 }

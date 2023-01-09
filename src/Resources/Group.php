@@ -17,9 +17,6 @@ class Group extends BaseADLdapResource
     /** @type Provider */
     protected $provider = null;
 
-    /**
-     * @param \DreamFactory\Core\Contracts\RequestHandlerInterface $parent
-     */
     public function setParent(RequestHandlerInterface $parent)
     {
         parent::setParent($parent);
@@ -41,7 +38,7 @@ class Group extends BaseADLdapResource
         $attributes = [];
 
         if ('*' !== $fields) {
-            $attributes = explode(',', $fields);
+            $attributes = explode(',', (string) $fields);
         }
 
         if (!empty($username)) {
@@ -69,7 +66,7 @@ class Group extends BaseADLdapResource
     protected function getApiDocPaths()
     {
         $base = parent::getApiDocPaths();
-        $resourceName = strtolower($this->name);
+        $resourceName = strtolower((string) $this->name);
         $path = '/' . $resourceName;
 
         $base[$path]['get']['parameters'][] = [

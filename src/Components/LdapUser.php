@@ -4,6 +4,7 @@ namespace DreamFactory\Core\ADLdap\Components;
 
 use DreamFactory\Core\ADLdap\Contracts\User as LdapUserContract;
 use Illuminate\Support\Facades\Hash;
+use \Illuminate\Support\Arr;
 
 class LdapUser extends BaseObject implements LdapUserContract
 {
@@ -20,7 +21,7 @@ class LdapUser extends BaseObject implements LdapUserContract
      */
     public function getId()
     {
-        return array_get($this->data, 'uidnumber');
+        return Arr::get($this->data, 'uidnumber');
     }
 
     /**
@@ -28,7 +29,7 @@ class LdapUser extends BaseObject implements LdapUserContract
      */
     public function getUid()
     {
-        return array_get($this->data, 'uid');
+        return Arr::get($this->data, 'uid');
     }
 
     /**
@@ -44,7 +45,7 @@ class LdapUser extends BaseObject implements LdapUserContract
      */
     public function getName()
     {
-        return array_get($this->data, 'cn');
+        return Arr::get($this->data, 'cn');
     }
 
     /**
@@ -52,7 +53,7 @@ class LdapUser extends BaseObject implements LdapUserContract
      */
     public function getFirstName()
     {
-        return array_get($this->data, 'givenname');
+        return Arr::get($this->data, 'givenname');
     }
 
     /**
@@ -60,7 +61,7 @@ class LdapUser extends BaseObject implements LdapUserContract
      */
     public function getLastName()
     {
-        return array_get($this->data, 'sn');
+        return Arr::get($this->data, 'sn');
     }
 
     /**
@@ -68,7 +69,7 @@ class LdapUser extends BaseObject implements LdapUserContract
      */
     public function getEmail()
     {
-        return array_get($this->data, 'mail');
+        return Arr::get($this->data, 'mail');
     }
 
     /**
@@ -76,7 +77,7 @@ class LdapUser extends BaseObject implements LdapUserContract
      */
     public function getPassword()
     {
-        $password = array_get($this->data, 'userpassword');
+        $password = Arr::get($this->data, 'userpassword');
         $password .= $this->getDn();
         $password .= time();
         $password = Hash::make($password);

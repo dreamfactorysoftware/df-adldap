@@ -12,6 +12,7 @@ use DreamFactory\Core\Exceptions\InternalServerErrorException;
 use DreamFactory\Core\Exceptions\UnauthorizedException;
 use DreamFactory\Core\Utility\Session;
 use Carbon\Carbon;
+use \Illuminate\Support\Arr;
 
 class ADLdap extends LDAP
 {
@@ -44,10 +45,10 @@ class ADLdap extends LDAP
     {
         $host = $this->getHost();
         $baseDn = $this->getBaseDn();
-        $accountSuffix = array_get($this->config, 'account_suffix');
+        $accountSuffix = Arr::get($this->config, 'account_suffix');
 
         $this->driver = new \DreamFactory\Core\ADLdap\Components\ADLdap($host, $baseDn, $accountSuffix);
-        $this->driver->setPageSize(array_get($this->config, 'max_page_size', 1000));
+        $this->driver->setPageSize(Arr::get($this->config, 'max_page_size', 1000));
     }
 
     /**
@@ -63,8 +64,8 @@ class ADLdap extends LDAP
      */
     public function authenticateAdminUser($username = null, $password = null)
     {
-        $user = (empty($username)) ? array_get($this->config, 'username') : $username;
-        $pwd = (empty($password)) ? array_get($this->config, 'password') : $password;
+        $user = (empty($username)) ? Arr::get($this->config, 'username') : $username;
+        $pwd = (empty($password)) ? Arr::get($this->config, 'password') : $password;
 
         if (empty($user) || empty($pwd)) {
             throw new BadRequestException('No username and/or password found in service definition.');
@@ -86,7 +87,7 @@ class ADLdap extends LDAP
     /** @inheritdoc */
     public function getRole()
     {
-        if (array_get($this->config, 'map_group_to_role', false)) {
+        if (Arr::get($this->config, 'map_group_to_role', false)) {
             $groups = $this->driver->getGroups();
             if (!empty($groups)) {
                 $primaryGroup = array_by_key_value($groups, 'primary', true);
@@ -112,19 +113,18 @@ class ADLdap extends LDAP
      * Finds a matching role, first with group dn then if not found,
      * finds with parent group's (memberOf) dn. (supporting sub-group).
      *
-     * @param array $group
      *
      * @return mixed|null
      */
     public function findRoleByGroup(array $group)
     {
-        $dn = array_get($group, 'dn');
+        $dn = Arr::get($group, 'dn');
 
         if (!empty($dn)) {
             $role = RoleADLdap::whereDn($dn)->first();
 
-            if (empty($role) && array_get($this->config, 'map_group_hierarchy', false)) {
-                $memberOf = array_get($group, 'memberof');
+            if (empty($role) && Arr::get($this->config, 'map_group_hierarchy', false)) {
+                $memberOf = Arr::get($group, 'memberof');
                 $parentGroups = (is_array($memberOf)) ? $memberOf : [$memberOf];
 
                 foreach ($parentGroups as $parentGroupDn) {
@@ -167,7 +167,7 @@ class ADLdap extends LDAP
 
         try {
             $adUser = $this->driver->getUserByUserName($username);
-        } catch (\Exception $e) {
+        } catch (\Exception) {
             $this->authenticateAdminUser();
             $adUser = $this->driver->getUserByUserName($username);
         }

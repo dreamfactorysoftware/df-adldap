@@ -14,6 +14,7 @@ use DreamFactory\Core\ADLdap\Contracts\Provider as ADLdapProvider;
 use DreamFactory\Core\Utility\Session;
 use DreamFactory\Core\ADLdap\Contracts\User as LdapUserContract;
 use Carbon\Carbon;
+use \Illuminate\Support\Arr;
 
 class LDAP extends BaseRestService
 {
@@ -47,8 +48,8 @@ class LDAP extends BaseRestService
 
         static::checkExtensions(['ldap']);
 
-        $this->config = array_get($settings, 'config');
-        $this->defaultRole = array_get($this->config, 'default_role');
+        $this->config = Arr::get($settings, 'config');
+        $this->defaultRole = Arr::get($this->config, 'default_role');
         $this->setDriver();
     }
 
@@ -61,7 +62,7 @@ class LDAP extends BaseRestService
         $baseDn = $this->getBaseDn();
 
         $this->driver = new OpenLdap($host, $baseDn);
-        $this->driver->setPageSize(array_get($this->config, 'max_page_size', 1000));
+        $this->driver->setPageSize(Arr::get($this->config, 'max_page_size', 1000));
     }
 
     /**
@@ -79,7 +80,7 @@ class LDAP extends BaseRestService
      */
     public function getRole()
     {
-        if (array_get($this->config, 'map_group_to_role', false)) {
+        if (Arr::get($this->config, 'map_group_to_role', false)) {
             $groups = $this->driver->getGroups();
             if (!empty($groups)) {
                 foreach ($groups as $group) {
@@ -104,7 +105,7 @@ class LDAP extends BaseRestService
      */
     public function findRoleByGroup(array $group)
     {
-        $dn = array_get($group, 'dn');
+        $dn = Arr::get($group, 'dn');
 
         if (!empty($dn)) {
             return RoleADLdap::whereDn($dn)->first();
@@ -157,7 +158,7 @@ class LDAP extends BaseRestService
      */
     public function getHost()
     {
-        return array_get($this->config, 'host');
+        return Arr::get($this->config, 'host');
     }
 
     /**
@@ -165,13 +166,12 @@ class LDAP extends BaseRestService
      */
     public function getBaseDn()
     {
-        return array_get($this->config, 'base_dn');
+        return Arr::get($this->config, 'base_dn');
     }
 
     /**
      * Handles login using this service.
      *
-     * @param array $credential
      * @param bool  $remember
      *
      * @return array
@@ -179,8 +179,8 @@ class LDAP extends BaseRestService
      */
     public function handleLogin(array $credential, $remember = false)
     {
-        $username = array_get($credential, 'username');
-        $password = array_get($credential, 'password');
+        $username = Arr::get($credential, 'username');
+        $password = Arr::get($credential, 'password');
         $auth = $this->driver->authenticate($username, $password);
 
         if ($auth) {
@@ -204,7 +204,6 @@ class LDAP extends BaseRestService
      * for all apps in the system. If user already exists then updates user's
      * role for all apps and returns it.
      *
-     * @param LdapUserContract $ldapUser
      *
      * @return User
      * @throws \Exception
@@ -222,7 +221,7 @@ class LDAP extends BaseRestService
             $domain = $ldapUser->getDomain();
             $email = $uid . '+' . $serviceName . '@' . $domain;
         } else {
-            list($emailId, $domain) = explode('@', $email);
+            [$emailId, $domain] = explode('@', $email);
             $email = $emailId . '+' . $serviceName . '@' . $domain;
         }
 
@@ -235,7 +234,7 @@ class LDAP extends BaseRestService
         }
 
         $data = [
-            'name'          => $ldapUser->getName(),
+            'name'          => $ldapUser->getName()[0],
             'username'      => $ldapUsername,
             'ldap_username' => $ldapUser->getUsername(),
             'first_name'    => $ldapUser->getFirstName(),
@@ -254,23 +253,21 @@ class LDAP extends BaseRestService
     /**
      * Creates or updates shadow user upon successful login.
      *
-     * @param array $data
      * @param null  $roleId
      * @param null  $serviceId
-     *
      * @return User
      */
     protected static function setShadowUser(array $data, $roleId = null, $serviceId = null)
     {
-        $email = array_get($data, 'email');
+        $email = Arr::get($data, 'email');
         /** @var User $user */
         $user = User::whereEmail($email)->first();
 
         if (empty($user)) {
             $user = User::create($data);
         } else {
-            $user->username = array_get($data, 'username');
-            $user->ldap_username = array_get($data, 'ldap_username');
+            $user->username = Arr::get($data, 'username');
+            $user->ldap_username = Arr::get($data, 'ldap_username');
             $user->update();
             $user = User::whereEmail($email)->first();
         }
@@ -289,14 +286,13 @@ class LDAP extends BaseRestService
     /**
      * Map groups to groupMembership array.
      *
-     * @param array $groups
      * @return array
      */
     public function getGroupsDns(array $groups)
     {
         $result = [];
         foreach ($groups as $group) {
-            $result [] = array_get($group, 'dn');
+            $result [] = Arr::get($group, 'dn');
         }
         return ['groupMembership' => $result];
     }

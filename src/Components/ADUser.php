@@ -2,6 +2,8 @@
 
 namespace DreamFactory\Core\ADLdap\Components;
 
+use \Illuminate\Support\Arr;
+
 class ADUser extends LdapUser
 {
     /**
@@ -9,7 +11,7 @@ class ADUser extends LdapUser
      */
     public function getUid()
     {
-        return array_get($this->data, 'samaccountname');
+        return Arr::get($this->data, 'samaccountname');
     }
 
     /**
@@ -17,7 +19,7 @@ class ADUser extends LdapUser
      */
     public function getName()
     {
-        return array_get($this->data, 'name');
+        return Arr::get($this->data, 'name');
     }
 
     /**

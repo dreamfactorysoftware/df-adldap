@@ -15,9 +15,6 @@ class Computer extends BaseADLdapResource
     /** @type Provider */
     protected $provider = null;
 
-    /**
-     * @param \DreamFactory\Core\Contracts\RequestHandlerInterface $parent
-     */
     public function setParent(RequestHandlerInterface $parent)
     {
         parent::setParent($parent);
@@ -39,7 +36,7 @@ class Computer extends BaseADLdapResource
         $attributes = [];
 
         if ('*' !== $fields) {
-            $attributes = explode(',', $fields);
+            $attributes = explode(',', (string) $fields);
         }
 
         if (empty($computerName)) {

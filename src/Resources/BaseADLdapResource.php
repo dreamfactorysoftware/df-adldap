@@ -5,11 +5,12 @@ namespace DreamFactory\Core\ADLdap\Resources;
 use DreamFactory\Core\Enums\ApiOptions;
 use DreamFactory\Core\Resources\BaseRestResource;
 use DreamFactory\Core\Utility\ResourcesWrapper;
+use Illuminate\Support\Str;
 
 class BaseADLdapResource extends BaseRestResource
 {
     /** A resource identifier used in swagger doc. */
-    const RESOURCE_IDENTIFIER = 'name';
+    final const RESOURCE_IDENTIFIER = 'name';
 
     /**
      * {@inheritdoc}
@@ -24,15 +25,15 @@ class BaseADLdapResource extends BaseRestResource
         $service = $this->getServiceName();
         $capitalized = camelize($service);
         $class = trim(strrchr(static::class, '\\'), '\\');
-        $resourceName = strtolower($this->name);
-        $pluralClass = str_plural($class);
+        $resourceName = strtolower((string) $this->name);
+        $pluralClass = Str::plural($class);
         $path = '/' . $resourceName;
 
         return [
             $path                                        => [
                 'get' => [
                     'summary'     => 'Retrieve one or more ' . $pluralClass . '.',
-                    'description' => 'List Active Directory ' . strtolower($pluralClass),
+                    'description' => 'List Active Directory ' . strtolower((string) $pluralClass),
                     'operationId' => 'get' . $capitalized . $pluralClass,
                     'parameters'  => [
                         ApiOptions::documentOption(ApiOptions::FIELDS),
@@ -74,7 +75,7 @@ class BaseADLdapResource extends BaseRestResource
     protected function getApiDocResponses()
     {
         $class = trim(strrchr(static::class, '\\'), '\\');
-        $pluralClass = str_plural($class);
+        $pluralClass = Str::plural($class);
 
         return [
             $class . 'Response'       => [
@@ -105,7 +106,7 @@ class BaseADLdapResource extends BaseRestResource
     protected function getApiDocSchemas()
     {
         $class = trim(strrchr(static::class, '\\'), '\\');
-        $pluralClass = str_plural($class);
+        $pluralClass = Str::plural($class);
         $wrapper = ResourcesWrapper::getWrapper();
 
         return [
