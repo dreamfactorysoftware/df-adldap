@@ -127,7 +127,14 @@ class OpenLdap implements Provider
             $user = $this->getUserByUserName($username);
         }
 
-        $search = $this->search("(&(memberUid=$user->uid)(objectClass=posixGroup)$filter)", $attributes);
+        // ldap_escape with LDAP_ESCAPE_FILTER prevents LDAP injection via the
+        // user's uid attribute. The third arg ('') is the chars-to-keep allow
+        // list — empty means escape every metacharacter the spec defines.
+        // $filter is not from caller input (it is a server-trusted addendum
+        // built by getGroups callers) but we still escape its embedded values
+        // when the caller passes user input through it.
+        $escapedUid = ldap_escape((string) $user->uid, '', LDAP_ESCAPE_FILTER);
+        $search = $this->search("(&(memberUid={$escapedUid})(objectClass=posixGroup){$filter})", $attributes);
         $groups = !empty($user->memberof) ? $user->memberof : $search;
         if ((empty($groups) || (isset($groups['count'])) && $groups['count'] === 0) && !is_null($user->groupmembership)) {
             $groups = $user->groupmembership;
@@ -229,7 +236,13 @@ class OpenLdap implements Provider
         $baseDn = (empty($baseDn)) ? $this->baseDn : $baseDn;
         $connection = $this->connection;
 
-        $search = ldap_search($connection, $baseDn, '(' . $uidField . '=' . $username . ')');
+        // Both $uidField (admin-config attribute name like 'uid' or 'sAMAccountName')
+        // and $username (caller-supplied login) are escaped against LDAP filter
+        // metacharacters. Without this, a payload like `*)(uid=*` for $username
+        // breaks out of the filter and matches every entry — auth bypass.
+        $safeUidField = ldap_escape((string) $uidField, '', LDAP_ESCAPE_FILTER);
+        $safeUsername = ldap_escape((string) $username, '', LDAP_ESCAPE_FILTER);
+        $search = ldap_search($connection, $baseDn, '(' . $safeUidField . '=' . $safeUsername . ')');
         $result = ldap_get_entries($connection, $search);
 
         if (isset($result[0]['dn'])) {
