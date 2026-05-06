@@ -19,7 +19,9 @@ use PHPUnit\Framework\TestCase;
  *     untrusted relative to the filter syntax) was concatenated raw.
  *
  * After the fix, both sites route values through ldap_escape with the
- * LDAP_ESCAPE_FILTER flag.
+ * LDAP_ESCAPE_FILTER flag. Follow-up hardening also forbids raw caller
+ * filter fragments in listGroup(); it now accepts only a simple
+ * attribute=value fragment and escapes the value before appending it.
  */
 class LdapInjectionTest extends TestCase
 {
@@ -92,9 +94,28 @@ class LdapInjectionTest extends TestCase
         $payload = '*)(uid=*';
         $escaped = ldap_escape($payload, '', LDAP_ESCAPE_FILTER);
 
-        // Each metachar (* ( ) \ NUL) must be \-hex encoded.
+        // Each metachar (* ( ) \\ NUL) must be \\-hex encoded.
         $this->assertStringNotContainsString('*', $escaped, 'asterisk must be escaped');
         $this->assertStringNotContainsString('(', $escaped, 'paren must be escaped');
         $this->assertStringNotContainsString(')', $escaped, 'paren must be escaped');
+    }
+
+    public function testListGroupSanitizesAdditionalFilterFragment(): void
+    {
+        $start = strpos($this->contents, 'function listGroup');
+        $this->assertNotFalse($start, 'listGroup() must exist');
+        $next = strpos($this->contents, "\n    /**", $start + 10);
+        $body = substr($this->contents, $start, $next === false ? null : ($next - $start));
+
+        $this->assertStringContainsString(
+            'sanitizeFilterFragment($filter)',
+            $body,
+            'listGroup() must sanitize caller-provided filter fragments before appending them to the LDAP query'
+        );
+        $this->assertStringNotContainsString(
+            '$this->getGroups(null, $attributes, $filter)',
+            $body,
+            'listGroup() must not pass the raw caller filter straight into getGroups()'
+        );
     }
 }

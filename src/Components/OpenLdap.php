@@ -274,11 +274,8 @@ class OpenLdap implements Provider
     {
 
         $result = [];
-        if (!empty($filter) && substr((string) $filter, 0, 1) != '(') {
-            $filter = '(' . $filter . ')';
-        }
-
-        $groups = $this->getGroups(null, $attributes, $filter);
+        $safeFilter = $this->sanitizeFilterFragment($filter);
+        $groups = $this->getGroups(null, $attributes, $safeFilter);
 
         if (isset($groups['count']) && $groups['count'] === 0) {
             return [];
@@ -292,6 +289,32 @@ class OpenLdap implements Provider
         }
 
         return $result;
+    }
+
+    /**
+     * Accept only a simple LDAP equality fragment for additional group
+     * filtering, and escape the value before it is appended to the full
+     * search filter. Raw LDAP filter fragments are too dangerous here.
+     */
+    protected function sanitizeFilterFragment($filter)
+    {
+        if (empty($filter)) {
+            return '';
+        }
+
+        $filter = trim((string) $filter);
+        if (strlen($filter) > 255) {
+            throw new BadRequestException('LDAP filter is too long.');
+        }
+
+        if (!preg_match('/^\(?\s*([A-Za-z][A-Za-z0-9._:-]*)\s*=\s*([^()]+?)\s*\)?$/', $filter, $matches)) {
+            throw new BadRequestException('Invalid LDAP filter. Only simple attribute=value filters are allowed.');
+        }
+
+        $attribute = $matches[1];
+        $value = ldap_escape(trim($matches[2]), '', LDAP_ESCAPE_FILTER);
+
+        return '(' . $attribute . '=' . $value . ')';
     }
 
     /** @inheritdoc */
