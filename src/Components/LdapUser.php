@@ -84,4 +84,12 @@ class LdapUser extends BaseObject implements LdapUserContract
 
         return $password;
     }
+
+    /**
+     * Directory department (departmentNumber) for chargeback attribution.
+     */
+    public function getDepartment()
+    {
+        return Arr::get($this->data, 'departmentnumber');
+    }
 }
