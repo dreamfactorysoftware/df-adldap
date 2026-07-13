@@ -189,6 +189,17 @@ class LDAP extends BaseRestService
             $user->last_login_date = Carbon::now()->toDateTimeString();
             $user->confirm_code = null;
             $user->save();
+
+            // ACP (net-new): capture the directory department for chargeback attribution.
+            $dept = method_exists($ldapUser, 'getDepartment') ? $ldapUser->getDepartment() : null;
+            $deptVal = is_array($dept) ? Arr::get($dept, 0) : $dept;
+            if (!empty($deptVal)) {
+                \DB::table('user_department')->updateOrInsert(
+                    ['user_id' => $user->id],
+                    ['department' => $deptVal, 'updated_at' => Carbon::now()->toDateTimeString()]
+                );
+            }
+
             Session::setUserInfoWithJWT($user, $remember);
             $userGroups = $this->getGroupsDns($this->driver->getGroups());
 
